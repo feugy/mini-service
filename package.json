@@ -1,0 +1,26 @@
+{
+  "name": "ei-service",
+  "version": "1.0.0",
+  "description": "Simple boilerplate service for Energy Insight project",
+  "main": "lib/client.js",
+  "scripts": {
+    "test": "lab test --coverage --lint --leaks --transform ./node_modules/lab-espower-transformer --verbose --reporter console --output stdout --reporter html --output coverage/index.html",
+    "lint": "eslint ."
+  },
+  "author": "Damien Simonin Feugas <damien.simoninfeugas@nearform.com>",
+  "license": "Proprietary",
+  "dependencies": {
+    "boom": "3.2.2",
+    "bunyan": "1.8.1",
+    "hapi": "13.4.1",
+    "joi": "8.4.2",
+    "request-promise": "3.0.0"
+  },
+  "devDependencies": {
+    "eslint": "2.13.0",
+    "lab": "10.8.2",
+    "lab-espower-transformer": "1.0.0",
+    "moment": "2.13.0",
+    "power-assert": "1.4.1"
+  }
+}
