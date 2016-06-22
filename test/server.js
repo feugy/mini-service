@@ -2,6 +2,7 @@ const Lab = require('lab')
 const assert = require('power-assert')
 const startServer = require('../lib/server')
 const utils = require('./utils')
+const services = require('./fixtures')
 
 const lab = exports.lab = Lab.script()
 const {describe, it, before, after} = lab
@@ -13,7 +14,7 @@ describe('service\'s server', () => {
   after(utils.restoreLogger)
 
   it('should start with default port', () =>
-    startServer()
+    startServer(services)
       .then(server => server.stop())
   )
 
@@ -30,7 +31,7 @@ describe('service\'s server', () => {
         first = server
       })
       // when starting another server on the same port
-      .then(() => startServer({port: first.info.port}))
+      .then(() => startServer([], {port: first.info.port}))
       .then(res => {
         first.stop()
         assert.fail(res, '', 'unexpected result')

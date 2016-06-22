@@ -1,10 +1,11 @@
 const Joi = require('joi')
 
 /**
- * Registers sevice's API
+ * Initialize service and returns an object containing APIs functions
+ * @param {Object} opts - service opts
  * @returns {Promise} promise - resolve with an object containing exposed APIs
  */
-exports.register = () => {
+exports.init = (opts = {}) => {
 
   const apis = {
     /**
@@ -22,7 +23,7 @@ exports.register = () => {
      * @returns {Promise} promise - resolved with a greeting string message
      */
     greeting(name) {
-      return Promise.resolve(`Hello ${name} !`)
+      return Promise.resolve(`Hello ${name}${opts.greetings || ''} !`)
     },
 
     /**
