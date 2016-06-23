@@ -2,10 +2,14 @@ const Lab = require('lab')
 const assert = require('power-assert')
 const startServer = require('../lib/server')
 const utils = require('./utils')
-const services = require('./fixtures')
 
 const lab = exports.lab = Lab.script()
 const {describe, it, before, after} = lab
+
+const services = [{
+  name: 'sample',
+  init: require('./fixtures/sample')
+}]
 
 describe('service\'s server', () => {
 

@@ -2,13 +2,17 @@ const Lab = require('lab')
 const assert = require('power-assert')
 const moment = require('moment')
 const client = require('../')
-const services = require('./fixtures')
 const startServer = require('../lib/server')
 const {version} = require('../package.json')
 const utils = require('./utils')
 
 const lab = exports.lab = Lab.script()
 const {describe, it, before, after} = lab
+
+const services = [{
+  name: 'sample',
+  init: require('./fixtures/sample')
+}]
 
 describe('service\'s client', () => {
 
@@ -22,7 +26,7 @@ describe('service\'s client', () => {
   })
 
   it('should be initialized multiple times', () => {
-    const instance = client(services)
+    const instance = client({services})
     return instance.init()
       .then(() => instance.init())
   })
@@ -86,7 +90,8 @@ describe('service\'s client', () => {
   }
 
   describe('a local client', () => {
-    const context = {client: client(services, {
+    const context = {client: client({
+      services,
       serviceOpts: {
         sample: {greetings: ' nice to meet you'}
       }
@@ -102,14 +107,16 @@ describe('service\'s client', () => {
     let server
 
     before(() =>
-      startServer(services, {
+      startServer({
+        services,
         serviceOpts: {
           sample: {greetings: ' nice to meet you'}
         }
       })
         .then(serv => {
           server = serv
-          context.client = client(services, {
+          context.client = client({
+            services,
             remote: server.info.uri
           })
         })
@@ -122,7 +129,7 @@ describe('service\'s client', () => {
   })
 
   describe('a remote client without server', () => {
-    const remote = client(services, {remote: 'http://localhost:1234'})
+    const remote = client({services, remote: 'http://localhost:1234'})
 
     before(() => remote.init())
 

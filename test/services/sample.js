@@ -1,6 +1,6 @@
 const Lab = require('lab')
 const assert = require('power-assert')
-const {init} = require('../fixtures/sample')
+const init = require('../fixtures/sample')
 
 const lab = exports.lab = Lab.script()
 const {describe, it, before} = lab

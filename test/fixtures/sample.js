@@ -5,7 +5,7 @@ const Joi = require('joi')
  * @param {Object} opts - service opts
  * @returns {Promise} promise - resolve with an object containing exposed APIs
  */
-exports.init = (opts = {}) => {
+module.exports = (opts = {}) => {
 
   const apis = {
     /**
