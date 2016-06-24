@@ -20,11 +20,15 @@
   },
   "devDependencies": {
     "eslint": "2.13.0",
-    "git-hooks": "1.0.2",
+    "ghooks": "1.2.4",
     "lab": "10.8.2",
     "lab-espower-transformer": "1.0.0",
     "moment": "2.13.0",
-    "power-assert": "1.4.1",
-    "pre-push": "0.1.1"
+    "power-assert": "1.4.1"
+  },
+  "config": {
+    "ghooks": {
+      "pre-push": "npm test"
+    }
   }
 }
