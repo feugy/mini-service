@@ -102,6 +102,9 @@ describe('service\'s client', () => {
     declareTests(context)
   })
 
+  // TODO fix me
+  console.log('coucou')
+
   describe('a remote client', () => {
     const context = {client: null}
     let server

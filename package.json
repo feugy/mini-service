@@ -4,7 +4,7 @@
   "description": "Simple boilerplate service for Energy Insight project",
   "main": "lib/client.js",
   "scripts": {
-    "test": "lab test --coverage --lint --leaks --transform ./node_modules/lab-espower-transformer --verbose --reporter console --output stdout --reporter html --output coverage/index.html",
+    "test": "lab test --coverage --lint --leaks --transform ./node_modules/lab-espower-transformer --verbose --reporter console --output stdout --reporter html --output coverage/index.html --lint-warnings-threshold 100 --threshold 95",
     "lint": "eslint .",
     "start": "node ./bin/start"
   },
@@ -23,6 +23,7 @@
     "lab": "10.8.2",
     "lab-espower-transformer": "1.0.0",
     "moment": "2.13.0",
-    "power-assert": "1.4.1"
+    "power-assert": "1.4.1",
+    "pre-push": "0.1.1"
   }
 }
