@@ -20,6 +20,7 @@
   },
   "devDependencies": {
     "eslint": "2.13.0",
+    "git-hooks": "1.0.2",
     "lab": "10.8.2",
     "lab-espower-transformer": "1.0.0",
     "moment": "2.13.0",
