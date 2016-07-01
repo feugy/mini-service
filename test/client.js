@@ -7,7 +7,7 @@ const {version} = require('../package.json')
 const utils = require('./utils')
 
 const lab = exports.lab = Lab.script()
-const {describe, it, before, after} = lab
+const {describe, it, before, beforeEach, after} = lab
 
 const services = [{
   name: 'sample',
@@ -140,6 +140,44 @@ describe('service\'s client', () => {
         }, err => {
           assert(err instanceof Error)
           assert.notEqual(err.message.indexOf('ECONNREFUSED'), -1)
+        })
+    )
+  })
+
+  describe('clients with an ordered list of services', () => {
+    const initOrder = []
+    const orderedServices = Array.from({length: 3}).map((v, i) => ({
+      name: `service-${i}`,
+      init: opts => new Promise((resolve, reject) => {
+        if (opts.fail) return reject(new Error(`service ${i} failed to initialize`))
+        initOrder.push(i)
+        return resolve()
+      })
+    }))
+
+    beforeEach(done => {
+      initOrder.splice(0, initOrder.length)
+      done()
+    })
+
+    it('should keep order when registering locally', () =>
+      client({services: orderedServices}).init()
+        .then(() => assert.deepEqual(initOrder, [0, 1, 2]))
+    )
+
+    it('should not stop initialisation at first error', () =>
+      client({
+        services: orderedServices,
+        serviceOpts: {
+          'service-1': {fail: true}
+        }
+      }).init()
+        .then(res => {
+          assert.fail(res, '', 'unexpected result')
+        }, err => {
+          assert(err instanceof Error)
+          assert.notEqual(err.message.indexOf('service 1 failed to initialize'), -1)
+          assert.deepEqual(initOrder, [0])
         })
     )
   })
