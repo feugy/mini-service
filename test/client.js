@@ -129,18 +129,31 @@ describe('service\'s client', () => {
   })
 
   describe('a remote client without server', () => {
-    const remote = client({services, remote: 'http://localhost:1234'})
+    const remote = client({services, remote: 'http://localhost:3000'})
 
-    before(() => remote.init())
-
-    it('should handle communication errors', () =>
-      remote.ping()
+    it('should report initialisation error', () =>
+      remote.init()
         .then(res => {
           assert.fail(res, '', 'unexpected result')
         }, err => {
           assert(err instanceof Error)
           assert.notEqual(err.message.indexOf('ECONNREFUSED'), -1)
         })
+    )
+
+    it('should handle communication errors', () =>
+      startServer({
+        services
+      }).then(server =>
+        remote.init()
+          .then(() => server.stop())
+          .then(() => remote.ping())
+      ).then(res => {
+        assert.fail(res, '', 'unexpected result')
+      }, err => {
+        assert(err instanceof Error)
+        assert.notEqual(err.message.indexOf('ECONNREFUSED'), -1)
+      })
     )
   })
 
