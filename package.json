@@ -18,6 +18,10 @@
     "joi": "8.4.2",
     "request-promise": "3.0.0"
   },
+  "repository": { 
+    "type" : "git",
+    "url" : "https://github.com/feugy/mini-service"
+  },
   "devDependencies": {
     "eslint": "2.13.0",
     "ghooks": "1.2.4",
