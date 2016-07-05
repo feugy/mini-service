@@ -1,26 +1,27 @@
 # Simplistic µService skeleton
 
-The goal of this skeleton is to give the minimal structure to implement a µService. that can be invoked locally or remotely.
+The goal of this skeleton is to give the minimal structure to implement a µService, that can be invoked locally or remotely.
 
 Its principles are the following:
-- impose very few constraint to developers that will add features
-- expose an easy to use interface to user code
+- very easy to add new service api endpoints
+- easy to use client interface, same usage both locally and remotely
 - hide deployment details and provide simple-yet-working solution
+- promises based
 
-## How do I use features from my µService ?
+## Client usage
 
-In a nodejs module *caller* that needs to use this µService *service*, add the µService as NPM dependency.
+In a nodejs module *caller* that needs to use this µService *service*, add the µService as NPM dependency:
 
 `> npm install --save-dev service`
 
-Then require the exposed interface (given that service exposes a `add()`api):
+Then require the exposed interface (given that service exposes an `add()`api):
 
 ```javascript
 const client = require('service')()
-// you can provide options, see further
+// you can also provide options, see below..
 
 console.log(client.version)
-// ouputs µService NPM version
+// outputs µService NPM version
 
 client.init().then(() => {
   client.add(10, 5).then(sum => console.log(sum))
@@ -29,17 +30,17 @@ client.init().then(() => {
 // outputs 15
 ```
 
-## How do I add features to my µService ?
+## Server usage
 
-Inside you *service* module, you can expose as many APIs as you want.
-Goes to the `/lib/services/index.js` file, and add you own code.
+Inside your *service* module, you can expose as many APIs as you want.
+Go to the `/lib/services/index.js` file, and add your own code, e.g.
 
 ```javascript
 module.exports = [{
-  // you can regroup your API and give them a name
+  // you can group your API and give them a name
   name: 'calc',
   // you need to provide an initialization function, that will take options,
-  // and returns a Promise when APIs is ready to be used
+  // and returns a Promise when APIs are ready to be used
   init: () => Promise.resolve({
     // each exposed API is a function that takes as many parameters as needed, and returns a Promise
     add: (a, b) => Promise.resolve(a + b),
@@ -48,14 +49,17 @@ module.exports = [{
 }]
 ```
 
-You don't need to put all the code in this file, you're free to divide it into different files/modules.
-In that case, simply requires and add them into the array exported by `/lib/services/index.js`
+For an example, see [sample.js](./test/fixtures/sample.js).
 
-## How my µService can be deployed ?
+Note: you don't need to put all the code in this file, you're free to divide it into different files/modules.
+In that case, simply require and add them into the array exported by `/lib/services/index.js`.
 
-You can use it locally (same node.js instance as the caller code), or remotely (deployed as remote Http server).
+## How can my µService be deployed ?
+
+You can use it locally (same node.js instance as the caller code), or remotely (deployed as remote HTTP server).
 Local is the default mode.
-To go remote, simply:
+
+To use remotely, simply:
 
  - start your µService as an Http server by running `> npm start`
  - from the caller code, provide the Http server url to your client: `const client = require('service')({remote: 'http://my-service:8080')`
@@ -88,7 +92,7 @@ module.exports = [{
 
 ## How do I configure my service initialization ?
 
-The `init()` function takes a single Object parameter, that you can use as option
+The `init()` function takes a single Object parameter, that can be used for options:
 
 ```javascript
 const fs = require('readFile')
@@ -127,10 +131,19 @@ To specify actual parameter values, change the caller code:
   const startServer = require('../lib/server')
 
   startServer({
-    // all options are regrouped under serviceOpts
+    // all options are grouped under serviceOpts
     serviceOpts: {
-      // reuse service name as property, and give any value you need
+      // use service name as property, and give any value you need
       calc: {config: './config.json'}
     }
   })
   ```
+
+## Acknowledgements
+
+This project was kindly sponsored by [nearForm](http://nearform.com).
+
+
+## License
+
+Copyright [Damien Simonin Feugas](https://github.com/feugy) and other contributors, licensed under [MIT](./LICENSE).
