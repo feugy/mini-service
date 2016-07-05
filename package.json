@@ -1,15 +1,17 @@
 {
-  "name": "ei-service",
-  "version": "1.0.0",
-  "description": "Simple boilerplate service for Energy Insight project",
-  "main": "lib/client.js",
-  "scripts": {
-    "test": "lab test --coverage --lint --leaks --transform ./node_modules/lab-espower-transformer --verbose --reporter console --output stdout --reporter html --output coverage/index.html --lint-warnings-threshold 100 --threshold 95",
-    "lint": "eslint .",
-    "start": "node ./bin/start"
+  "name": "mini-service",
+  "version": "1.1.0",
+  "description": "Micro services done simply. Choose to run them locally or remotely",
+  "repository": {
+    "type" : "git",
+    "url" : "https://github.com/feugy/mini-service"
   },
-  "author": "Damien Simonin Feugas <damien.simoninfeugas@nearform.com>",
-  "license": "Proprietary",
+  "author": "feugy <damien.feugas@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "test": "lab test --leaks --reporter console --output stdout --reporter html --output coverage/index.html --lint-warnings-threshold 100 --threshold 95",
+    "lint": "eslint ."
+  },
   "dependencies": {
     "boom": "3.2.2",
     "bunyan": "1.8.1",
@@ -17,10 +19,6 @@
     "istanbul": "0.4.4",
     "joi": "8.4.2",
     "request-promise": "3.0.0"
-  },
-  "repository": { 
-    "type" : "git",
-    "url" : "https://github.com/feugy/mini-service"
   },
   "devDependencies": {
     "eslint": "2.13.0",

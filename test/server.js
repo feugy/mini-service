@@ -1,7 +1,8 @@
 const Lab = require('lab')
+const bunyan = require('bunyan')
 const assert = require('power-assert')
 const request = require('request-promise')
-const startServer = require('../lib/server')
+const {startServer} = require('../')
 const utils = require('./utils')
 
 const lab = exports.lab = Lab.script()
@@ -85,6 +86,7 @@ describe('service\'s server', () => {
       init: opts => new Promise((resolve, reject) => {
         if (opts.fail) return reject(new Error(`service ${i} failed to initialize`))
         initOrder.push(i)
+        opts.logger.warn(`from service ${i}`)
         return resolve()
       })
     }))
@@ -118,5 +120,18 @@ describe('service\'s server', () => {
           assert.deepEqual(initOrder, [0])
         })
     )
+
+    it('should expose logger to services', () => {
+      const logs = []
+      const logger = bunyan.createLogger({name: 'test'})
+      logger.warn = msg => logs.push(msg)
+      return startServer({
+        logger,
+        services: orderedServices
+      }).then(server => {
+        server.stop()
+        assert.deepEqual(logs, ['from service 0', 'from service 1', 'from service 2'])
+      })
+    })
   })
 })

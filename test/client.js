@@ -1,8 +1,8 @@
 const Lab = require('lab')
 const assert = require('power-assert')
 const moment = require('moment')
-const client = require('../')
-const startServer = require('../lib/server')
+const bunyan = require('bunyan')
+const {getClient, startServer} = require('../')
 const {version} = require('../package.json')
 const utils = require('./utils')
 
@@ -21,12 +21,12 @@ describe('service\'s client', () => {
   after(utils.restoreLogger)
 
   it('should expose service\'s version', done => {
-    assert.equal(client().version, version)
+    assert.equal(getClient().version, version)
     done()
   })
 
   it('should be initialized multiple times', () => {
-    const instance = client({services})
+    const instance = getClient({services})
     return instance.init()
       .then(() => instance.init())
   })
@@ -90,7 +90,7 @@ describe('service\'s client', () => {
   }
 
   describe('a local client', () => {
-    const context = {client: client({
+    const context = {client: getClient({
       services,
       serviceOpts: {
         sample: {greetings: ' nice to meet you'}
@@ -115,7 +115,7 @@ describe('service\'s client', () => {
       })
         .then(serv => {
           server = serv
-          context.client = client({
+          context.client = getClient({
             services,
             remote: server.info.uri
           })
@@ -129,7 +129,7 @@ describe('service\'s client', () => {
   })
 
   describe('a remote client without server', () => {
-    const remote = client({services, remote: 'http://localhost:3000'})
+    const remote = getClient({services, remote: 'http://localhost:3000'})
 
     it('should report initialisation error', () =>
       remote.init()
@@ -164,6 +164,7 @@ describe('service\'s client', () => {
       init: opts => new Promise((resolve, reject) => {
         if (opts.fail) return reject(new Error(`service ${i} failed to initialize`))
         initOrder.push(i)
+        opts.logger.info(`from service ${i}`)
         return resolve()
       })
     }))
@@ -174,12 +175,12 @@ describe('service\'s client', () => {
     })
 
     it('should keep order when registering locally', () =>
-      client({services: orderedServices}).init()
+      getClient({services: orderedServices}).init()
         .then(() => assert.deepEqual(initOrder, [0, 1, 2]))
     )
 
     it('should not stop initialisation at first error', () =>
-      client({
+      getClient({
         services: orderedServices,
         serviceOpts: {
           'service-1': {fail: true}
@@ -193,5 +194,18 @@ describe('service\'s client', () => {
           assert.deepEqual(initOrder, [0])
         })
     )
+
+    it('should expose logger to services', () => {
+      const logs = []
+      const logger = bunyan.createLogger({name: 'test'})
+      logger.info = msg => logs.push(msg)
+      return getClient({
+        logger,
+        services: orderedServices
+      }).init()
+        .then(() => {
+          assert.deepEqual(logs, ['from service 0', 'from service 1', 'from service 2'])
+        })
+    })
   })
 })
