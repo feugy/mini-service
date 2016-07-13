@@ -104,7 +104,7 @@ describe('service\'s server', () => {
         })
     )
 
-    it('should not stop initialisation at first error', () =>
+    it('should stop initialisation at first error', () =>
       startServer({
         services: orderedServices,
         serviceOpts: {
@@ -119,6 +119,26 @@ describe('service\'s server', () => {
           assert.notEqual(err.message.indexOf('service 1 failed to initialize'), -1)
           assert.deepEqual(initOrder, [0])
         })
+    )
+
+    it('should ignore services that doesn\'t expose an object', () =>
+      startServer({
+        services: [{
+          name: 'init-string',
+          init: () => Promise.resolve('initialized')
+        }, {
+          name: 'init-boolean',
+          init: () => Promise.resolve(true)
+        }, {
+          name: 'init-array',
+          init: () => Promise.resolve([{worked: true}])
+        }, {
+          name: 'init-empty',
+          init: () => Promise.resolve(null)
+        }].concat(orderedServices)
+      }).then(server => {
+        server.stop()
+      })
     )
 
     it('should expose logger to services', () => {

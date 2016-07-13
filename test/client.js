@@ -179,7 +179,7 @@ describe('service\'s client', () => {
         .then(() => assert.deepEqual(initOrder, [0, 1, 2]))
     )
 
-    it('should not stop initialisation at first error', () =>
+    it('should stop initialisation at first error', () =>
       getClient({
         services: orderedServices,
         serviceOpts: {
@@ -193,6 +193,24 @@ describe('service\'s client', () => {
           assert.notEqual(err.message.indexOf('service 1 failed to initialize'), -1)
           assert.deepEqual(initOrder, [0])
         })
+    )
+
+    it('should ignore services that doesn\'t expose an object', () =>
+      getClient({
+        services: [{
+          name: 'init-string',
+          init: () => Promise.resolve('initialized')
+        }, {
+          name: 'init-boolean',
+          init: () => Promise.resolve(true)
+        }, {
+          name: 'init-array',
+          init: () => Promise.resolve([{worked: true}])
+        }, {
+          name: 'init-empty',
+          init: () => Promise.resolve(null)
+        }].concat(orderedServices)
+      }).init()
     )
 
     it('should expose logger to services', () => {
