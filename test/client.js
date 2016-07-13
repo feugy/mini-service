@@ -213,6 +213,51 @@ describe('service\'s client', () => {
       }).init()
     )
 
+    it('should enforce service name', () =>
+      getClient({
+        services: [{
+          init: () => Promise.resolve('initialized')
+        }]
+      }).init()
+        .then(server => {
+          server.stop()
+          throw new Error('should have failed')
+        }, err => {
+          assert.ok(err instanceof Error)
+          assert.notEqual(err.message.indexOf('"name" is required'), -1)
+        })
+    )
+
+    it('should enforce service init function', () =>
+      getClient({
+        services: [{
+          name: 'test'
+        }]
+      }).init()
+        .then(server => {
+          server.stop()
+          throw new Error('should have failed')
+        }, err => {
+          assert.ok(err instanceof Error)
+          assert.notEqual(err.message.indexOf('"init" is required'), -1)
+        })
+    )
+
+    it('should check that service init function returns a Promise', () =>
+      getClient({
+        services: [{
+          name: 'test',
+          init: () => ({test: true})
+        }]
+      }).init()
+        .then(server => {
+          server.stop()
+          throw new Error('should have failed')
+        }, err => {
+          assert.ok(err instanceof Error)
+          assert.notEqual(err.message.indexOf('didn\'t returned a promise'), -1)
+        })
+    )
     it('should expose logger to services', () => {
       const logs = []
       const logger = bunyan.createLogger({name: 'test'})

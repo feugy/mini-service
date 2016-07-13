@@ -139,6 +139,59 @@ To specify actual parameter values, change the caller code:
   })
   ```
 
+In addition to the specified options, your service `init()` parameter also contains `logger` property, which is the overall Bunyan logger.
+
+## How can I exposed function from different files ?
+
+Instead of putting everything in the same file, you can use as many files as you want.
+A simple file layout example:
+
+`/lib/services/index.js`
+
+```javascript
+module.exports = [
+  {name: 'calc', init: require('./calc')},
+  {name: 'utilities', init: require('./utilities')}
+]
+```
+
+`/lib/services/calc.js`
+
+```javascript
+// you need to provide an initialization function, that will take options,
+// and returns a Promise when APIs are ready to be used
+module.exports = options => Promise.resolve({
+  // each exposed API is a function that takes as many parameters as needed, and returns a Promise
+  add: (a, b) => Promise.resolve(a + b),
+  subtract: (a, b) => Promise.resolve(a - b)
+})
+```
+
+## How can I share initialisation between different files ?
+
+Services will be initialized serially, so you can use this order to perform general initialization.
+
+```javascript
+// shared object among services
+let sql
+
+module.exports = [{
+  name: 'global-init',
+  init: options => new Promise(resolve => {
+    sql = mysqljs(options)
+    // no need to expose anything
+    resolve()
+  })
+}, {
+  name: 'calc',
+  // pass your shared object to your init method, as well as other options
+  init: opts => require('./calc')(sql, opts)
+}, {
+  name: 'utilities',
+  init: opts => require('./utilities')(sql, opts)
+}]
+```
+
 ## Acknowledgements
 
 This project was kindly sponsored by [nearForm](http://nearform.com).
