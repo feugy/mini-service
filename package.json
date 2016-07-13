@@ -1,6 +1,6 @@
 {
   "name": "mini-service",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Micro services done simply. Choose to run them locally or remotely",
   "repository": {
     "type" : "git",
@@ -9,21 +9,21 @@
   "author": "feugy <damien.feugas@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "test": "lab test --leaks --reporter console --output stdout --reporter html --output coverage/index.html --lint-warnings-threshold 100 --threshold 95",
+    "test": "lab test",
     "lint": "eslint ."
   },
   "dependencies": {
     "boom": "3.2.2",
     "bunyan": "1.8.1",
-    "hapi": "13.4.1",
+    "hapi": "13.4.2",
     "istanbul": "0.4.4",
     "joi": "8.4.2",
     "request-promise": "3.0.0"
   },
   "devDependencies": {
-    "eslint": "2.13.0",
+    "eslint": "3.0.1",
     "ghooks": "1.2.4",
-    "lab": "10.8.2",
+    "lab": "10.9.0",
     "lab-espower-transformer": "1.0.0",
     "moment": "2.13.0",
     "power-assert": "1.4.1"
