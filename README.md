@@ -13,6 +13,8 @@ Its principles are the following:
 - hide deployment details and provide simple-yet-working solution
 - promises based
 
+mini-service uses the latest ES6 features, so it requires node 6+
+
 ## Client usage
 
 In a nodejs module *caller* that needs to use this µService *service*, add the µService as NPM dependency:
@@ -205,6 +207,30 @@ This project was kindly sponsored by [nearForm][nearform].
 ## License
 
 Copyright [Damien Simonin Feugas][feugy] and other contributors, licensed under [MIT](./LICENSE).
+
+## Changelog
+
+### 1.2.0
+- use proxy to delay remotely exposed Apis retrieval to the first effective usage
+- activate Travis CI and coveralls reports
+- update dependencies
+
+### 1.1.3
+- client functions always returns a real promise (request-promise return a mixed stream + promise object that prevent direct usage in Hapi)
+- checks exposed services interface to avoid mistakes
+
+### 1.1.2
+- update dependencies
+- use lab configuration file
+
+### 1.1.1
+- fix bug that prevent to specify version when creating the service
+
+### 1.1.0
+- allows to use general logger object within exposed services
+
+### 1.0.0
+- initial release
 
 [nearform]: http://nearform.com
 [feugy]: https://github.com/feugy

@@ -54,7 +54,7 @@ describe('service\'s client', () => {
           assert.fail(res, '', 'unexpected result')
         }, err => {
           assert(err instanceof Error)
-          assert.notEqual(err.message.indexOf('really bad'), -1)
+          assert(err.message.includes('really bad'))
         })
     )
 
@@ -64,7 +64,7 @@ describe('service\'s client', () => {
           assert.fail(res, '', 'unexpected result')
         }, err => {
           assert(err instanceof Error)
-          assert.notEqual(err.message.indexOf('required'), -1)
+          assert(err.message.includes('required'))
         })
     )
 
@@ -74,7 +74,7 @@ describe('service\'s client', () => {
           assert.fail(res, '', 'unexpected result')
         }, err => {
           assert(err instanceof Error)
-          assert.notEqual(err.message.indexOf('must be a string'), -1)
+          assert(err.message.includes('must be a string'))
         })
     )
 
@@ -84,7 +84,7 @@ describe('service\'s client', () => {
           assert.fail(res, '', 'unexpected result')
         }, err => {
           assert(err instanceof Error)
-          assert.notEqual(err.message.indexOf('must contain at most'), -1)
+          assert(err.message.includes('must contain at most'))
         })
     )
   }
@@ -120,7 +120,6 @@ describe('service\'s client', () => {
             remote: server.info.uri
           })
         })
-        .then(() => context.client.init())
     )
 
     after(() => server.stop())
@@ -129,32 +128,72 @@ describe('service\'s client', () => {
   })
 
   describe('a remote client without server', () => {
-    const remote = getClient({services, remote: 'http://localhost:3000'})
+    let remote
 
-    it('should report initialisation error', () =>
-      remote.init()
+    beforeEach(done => {
+      remote = getClient({services, remote: 'http://localhost:3000'})
+      done()
+    })
+
+    it('should handle communication error', () =>
+      remote.ping() // no server available
         .then(res => {
           assert.fail(res, '', 'unexpected result')
         }, err => {
           assert(err instanceof Error)
-          assert.notEqual(err.message.indexOf('ECONNREFUSED'), -1)
+          assert(err.message.includes('ECONNREFUSED'))
         })
     )
 
-    it('should handle communication errors', () =>
-      startServer({
-        services
-      }).then(server =>
-        remote.init()
-          .then(() => server.stop())
-          .then(() => remote.ping())
-      ).then(res => {
-        assert.fail(res, '', 'unexpected result')
-      }, err => {
-        assert(err instanceof Error)
-        assert.notEqual(err.message.indexOf('ECONNREFUSED'), -1)
-      })
+    it('should not communicate with server until first call', () =>
+      remote.init() // no communication until that point
+        .then(() => startServer({services}))
+        .then(server =>
+          remote.ping() // first communication
+            .then(result => {
+              server.stop()
+              assert(moment(result.time).isValid())
+              assert.equal(typeof result.time, 'string')
+            }, err => {
+              server.stop()
+              throw err
+            })
+        )
     )
+
+    it('should not get remote exposed apis twice', () =>
+      startServer({services})
+        .then(server => {
+          const invoked = []
+          server.on('response', req => invoked.push(req.route.path))
+          return remote.ping() // first communication
+            .then(() => remote.ping()) // no other communication
+            .then(() => {
+              server.stop()
+              assert.equal(invoked.length, 3)
+              assert.equal(invoked.filter(n => n.includes('exposed')).length, 1)
+              assert.equal(invoked.filter(n => n.includes('ping')).length, 2)
+            }, err => {
+              server.stop()
+              throw err
+            })
+        })
+    )
+
+    it('should report unknown operation', () =>
+      startServer({services})
+        .then(server =>
+          remote.unknown() // not exposed by server
+          .then(res => {
+            server.stop()
+            assert.fail(res, '', 'unexpected result')
+          }, err => {
+            server.stop()
+            assert(err instanceof Error)
+            assert(err.message.includes('unknown is not a function'))
+          })
+        )
+      )
   })
 
   describe('clients with an ordered list of services', () => {
@@ -190,7 +229,7 @@ describe('service\'s client', () => {
           assert.fail(res, '', 'unexpected result')
         }, err => {
           assert(err instanceof Error)
-          assert.notEqual(err.message.indexOf('service 1 failed to initialize'), -1)
+          assert(err.message.includes('service 1 failed to initialize'))
           assert.deepEqual(initOrder, [0])
         })
     )
@@ -224,7 +263,7 @@ describe('service\'s client', () => {
           throw new Error('should have failed')
         }, err => {
           assert.ok(err instanceof Error)
-          assert.notEqual(err.message.indexOf('"name" is required'), -1)
+          assert(err.message.includes('"name" is required'))
         })
     )
 
@@ -239,7 +278,7 @@ describe('service\'s client', () => {
           throw new Error('should have failed')
         }, err => {
           assert.ok(err instanceof Error)
-          assert.notEqual(err.message.indexOf('"init" is required'), -1)
+          assert(err.message.includes('"init" is required'))
         })
     )
 
@@ -255,7 +294,7 @@ describe('service\'s client', () => {
           throw new Error('should have failed')
         }, err => {
           assert.ok(err instanceof Error)
-          assert.notEqual(err.message.indexOf('didn\'t returned a promise'), -1)
+          assert(err.message.includes('didn\'t returned a promise'))
         })
     )
     it('should expose logger to services', () => {

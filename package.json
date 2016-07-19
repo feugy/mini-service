@@ -16,10 +16,10 @@
   "dependencies": {
     "boom": "3.2.2",
     "bunyan": "1.8.1",
-    "hapi": "13.4.2",
-    "istanbul": "0.4.4",
+    "hapi": "13.5.0",
     "joi": "8.4.2",
-    "request-promise": "3.0.0"
+    "request": "2.73.0",
+    "request-promise": "4.0.2"
   },
   "devDependencies": {
     "coveralls": "2.11.11",
