@@ -1,3 +1,8 @@
+[![NPM Version][npm-image]][npm-url]
+[![Dependencies][david-image]][david-url]
+[![Build][travis-image]][travis-url]
+[![Test Coverage][coveralls-image]][coveralls-url]
+
 # Simplistic µService skeleton
 
 The goal of this skeleton is to give the minimal structure to implement a µService, that can be invoked locally or remotely.
@@ -194,9 +199,20 @@ module.exports = [{
 
 ## Acknowledgements
 
-This project was kindly sponsored by [nearForm](http://nearform.com).
+This project was kindly sponsored by [nearForm][nearform].
 
 
 ## License
 
-Copyright [Damien Simonin Feugas](https://github.com/feugy) and other contributors, licensed under [MIT](./LICENSE).
+Copyright [Damien Simonin Feugas][feugy] and other contributors, licensed under [MIT](./LICENSE).
+
+[nearform]: http://nearform.com
+[feugy]: https://github.com/feugy
+[david-image]: https://img.shields.io/david/feugy/mini-service.svg
+[david-url]: https://david-dm.org/feugy/mini-service
+[npm-image]: https://img.shields.io/npm/v/mini-service.svg
+[npm-url]: https://npmjs.org/package/mini-service
+[travis-image]: https://img.shields.io/travis/expressjs/express/master.svg?label=linux
+[travis-url]: https://travis-ci.org/expressjs/express
+[coveralls-image]: https://img.shields.io/coveralls/feugy/mini-service/master.svg
+[coveralls-url]: https://coveralls.io/r/feugy/mini-service?branch=master

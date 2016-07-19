@@ -6,6 +6,13 @@ const outputs = [{
   output: 'coverage/index.html'
 }]
 
+if (process.env.CI) {
+  outputs.push({
+    reporter: 'lcov',
+    output: 'coverage/lcov.info'
+  })
+}
+
 module.exports = {
   coverage: true,
   leaks: true,
