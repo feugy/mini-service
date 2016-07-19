@@ -11,7 +11,7 @@
   "scripts": {
     "test": "lab test",
     "lint": "eslint .",
-    "submit-coverage": "coveralls coverage/lcov.info"
+    "submit-coverage": "cat coverage/lcov.info | coveralls -v"
   },
   "dependencies": {
     "boom": "3.2.2",
