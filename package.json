@@ -1,6 +1,6 @@
 {
   "name": "mini-service",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Micro services done simply. Choose to run them locally or remotely",
   "repository": {
     "type": "git",

@@ -210,6 +210,9 @@ Copyright [Damien Simonin Feugas][feugy] and other contributors, licensed under 
 
 ## Changelog
 
+### 1.2.1
+- fix issue related to parameter name extraction when using arrow functions
+
 ### 1.2.0
 - use proxy to delay remotely exposed Apis retrieval to the first effective usage
 - activate Travis CI and coveralls reports
@@ -238,7 +241,7 @@ Copyright [Damien Simonin Feugas][feugy] and other contributors, licensed under 
 [david-url]: https://david-dm.org/feugy/mini-service
 [npm-image]: https://img.shields.io/npm/v/mini-service.svg
 [npm-url]: https://npmjs.org/package/mini-service
-[travis-image]: https://img.shields.io/travis/expressjs/express/master.svg?label=linux
-[travis-url]: https://travis-ci.org/expressjs/express
+[travis-image]: https://travis-ci.org/feugy/mini-service/master.svg
+[travis-url]: https://travis-ci.org/feugy/mini-service
 [coveralls-image]: https://img.shields.io/coveralls/feugy/mini-service/master.svg
 [coveralls-url]: https://coveralls.io/r/feugy/mini-service?branch=master
