@@ -210,6 +210,10 @@ Copyright [Damien Simonin Feugas][feugy] and other contributors, licensed under 
 
 ## Changelog
 
+### 1.2.2
+- fix parameter detection
+- fix Proxy that is detected as a Thenable object
+
 ### 1.2.1
 - fix issue related to parameter name extraction when using arrow functions
 

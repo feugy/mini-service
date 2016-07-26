@@ -135,6 +135,11 @@ describe('service\'s client', () => {
       done()
     })
 
+    it('should not be detected as a Promise', () =>
+      // This will check the existence of then method on the Proxy
+      Promise.resolve(remote)
+    )
+
     it('should handle communication error', () =>
       remote.ping() // no server available
         .then(res => {

@@ -9,6 +9,9 @@ describe('Utilities', () => {
 
   describe('getParamNames', () => {
 
+    /* eslint no-empty-function: 0 */
+    const noop = () => {}
+
     it('should fails on null', done => {
       assert.throws(() => utils.getParamNames(null), /unsupported function null/)
       done()
@@ -40,102 +43,133 @@ describe('Utilities', () => {
     })
 
     it('should handle empty function declaration', done => {
-      /* eslint prefer-arrow-callback: 0, no-empty-function: 0 */
-      function declared() {}
+      /* eslint prefer-arrow-callback: 0 */
+      function declared() {
+        noop()
+      }
       assert.deepEqual(utils.getParamNames(declared), [])
       done()
     })
 
     it('should handle empty anonymous function', done => {
-      /* eslint prefer-arrow-callback: 0, no-empty-function: 0 */
-      assert.deepEqual(utils.getParamNames(function() {}), [])
+      /* eslint prefer-arrow-callback: 0 */
+      assert.deepEqual(utils.getParamNames(function() {
+        noop()
+      }), [])
       done()
     })
 
     it('should handle named function', done => {
-      /* eslint prefer-arrow-callback: 0, no-empty-function: 0 */
-      assert.deepEqual(utils.getParamNames(function named() {}), [])
+      /* eslint prefer-arrow-callback: 0 */
+      assert.deepEqual(utils.getParamNames(function named() {
+        noop()
+      }), [])
       done()
     })
 
     it('should handle empty arrow function', done => {
-      /* eslint no-empty-function: 0 */
-      assert.deepEqual(utils.getParamNames(() => {}), [])
+      assert.deepEqual(utils.getParamNames(() => {
+        noop()
+      }), [])
       done()
     })
 
     it('should handle function declaration with single parameter', done => {
-      /* eslint prefer-arrow-callback: 0, no-empty-function: 0 */
-      function declared(a) {}
+      /* eslint prefer-arrow-callback: 0 */
+      function declared(a) {
+        noop()
+      }
       assert.deepEqual(utils.getParamNames(declared), ['a'])
       done()
     })
 
     it('should handle anonymous function with single parameter', done => {
-      /* eslint prefer-arrow-callback: 0, no-empty-function: 0, no-unused-vars:0 */
-      assert.deepEqual(utils.getParamNames(function(a) {}), ['a'])
+      /* eslint prefer-arrow-callback: 0,  no-unused-vars:0 */
+      assert.deepEqual(utils.getParamNames(function(a) {
+        noop()
+      }), ['a'])
       done()
     })
 
     it('should handle named function with single parameter', done => {
-      /* eslint prefer-arrow-callback: 0, no-empty-function: 0, no-unused-vars:0 */
-      assert.deepEqual(utils.getParamNames(function named(a) {}), ['a'])
+      /* eslint prefer-arrow-callback: 0, no-unused-vars:0 */
+      assert.deepEqual(utils.getParamNames(function named(a) {
+        noop()
+      }), ['a'])
       done()
     })
 
     it('should handle empty arrow function with single parameter', done => {
-      /* eslint no-empty-function: 0, no-unused-vars:0 */
-      assert.deepEqual(utils.getParamNames(a => {}), ['a'])
+      /* eslint no-unused-vars:0 */
+      assert.deepEqual(utils.getParamNames(a => {
+        noop()
+      }), ['a'])
       done()
     })
 
     it('should handle function declaration with multiple parameter', done => {
-      /* eslint prefer-arrow-callback: 0, no-empty-function: 0 */
-      function declared(a, b, c) {}
+      /* eslint prefer-arrow-callback: 0 */
+      function declared(a, b, c) {
+        noop()
+      }
       assert.deepEqual(utils.getParamNames(declared), ['a', 'b', 'c'])
       done()
     })
 
     it('should handle anonymous function with multiple parameters', done => {
-      /* eslint prefer-arrow-callback: 0, no-empty-function: 0, no-unused-vars:0 */
-      assert.deepEqual(utils.getParamNames(function(a, b, c) {}), ['a', 'b', 'c'])
+      /* eslint prefer-arrow-callback: 0, no-unused-vars:0 */
+      assert.deepEqual(utils.getParamNames(function(a, b, c) {
+        noop()
+      }), ['a', 'b', 'c'])
       done()
     })
 
     it('should handle named function with multiple parameters', done => {
-      /* eslint prefer-arrow-callback: 0, no-empty-function: 0, no-unused-vars:0 */
-      assert.deepEqual(utils.getParamNames(function named(a, b, c) {}), ['a', 'b', 'c'])
+      /* eslint prefer-arrow-callback: 0, no-unused-vars:0 */
+      assert.deepEqual(utils.getParamNames(function named(a, b, c) {
+        noop()
+      }), ['a', 'b', 'c'])
       done()
     })
 
     it('should handle empty arrow function with multiple parameters', done => {
-      /* eslint no-empty-function: 0, no-unused-vars:0 */
-      assert.deepEqual(utils.getParamNames((a, b, c) => {}), ['a', 'b', 'c'])
+      /* eslint no-unused-vars:0 */
+      assert.deepEqual(utils.getParamNames((a, b, c) => {
+        noop()
+      }), ['a', 'b', 'c'])
       done()
     })
 
     it('should handle function declaration with default values', done => {
-      /* eslint prefer-arrow-callback: 0, no-empty-function: 0 */
-      function declared(a, b, c = false) {}
+      /* eslint prefer-arrow-callback: 0 */
+      function declared(a, b, c = false) {
+        noop()
+      }
       assert.deepEqual(utils.getParamNames(declared), ['a', 'b', 'c'])
       done()
     })
 
     it('should handle anonymous function with default values', done => {
-      /* eslint prefer-arrow-callback: 0, no-empty-function: 0, no-unused-vars:0 */
-      assert.deepEqual(utils.getParamNames(function(a, b, c = 10) {}), ['a', 'b', 'c'])
+      /* eslint prefer-arrow-callback: 0, no-unused-vars:0 */
+      assert.deepEqual(utils.getParamNames(function(a, b, c = 10) {
+        noop()
+      }), ['a', 'b', 'c'])
       done()
     })
 
     it('should handle named function with default values', done => {
-      /* eslint prefer-arrow-callback: 0, no-empty-function: 0, no-unused-vars:0 */
-      assert.deepEqual(utils.getParamNames(function named(a, b, c = null) {}), ['a', 'b', 'c'])
+      /* eslint prefer-arrow-callback: 0, no-unused-vars:0 */
+      assert.deepEqual(utils.getParamNames(function named(a, b, c = null) {
+        noop()
+      }), ['a', 'b', 'c'])
       done()
     })
 
     it('should handle empty arrow function with default values', done => {
-      /* eslint no-empty-function: 0, no-unused-vars:0 */
-      assert.deepEqual(utils.getParamNames((a, b, c = []) => {}), ['a', 'b', 'c'])
+      /* eslint no-unused-vars:0 */
+      assert.deepEqual(utils.getParamNames((a, b, c = []) => {
+        noop()
+      }), ['a', 'b', 'c'])
       done()
     })
   })
