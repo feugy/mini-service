@@ -210,6 +210,9 @@ Copyright [Damien Simonin Feugas][feugy] and other contributors, licensed under 
 
 ## Changelog
 
+### 1.3.0
+- Add NSP checks, and upgrade vulnerable dependency
+
 ### 1.2.2
 - fix parameter detection
 - fix Proxy that is detected as a Thenable object
@@ -245,7 +248,7 @@ Copyright [Damien Simonin Feugas][feugy] and other contributors, licensed under 
 [david-url]: https://david-dm.org/feugy/mini-service
 [npm-image]: https://img.shields.io/npm/v/mini-service.svg
 [npm-url]: https://npmjs.org/package/mini-service
-[travis-image]: https://travis-ci.org/feugy/mini-service/master.svg
+[travis-image]: https://api.travis-ci.org/feugy/mini-service.svg
 [travis-url]: https://travis-ci.org/feugy/mini-service
 [coveralls-image]: https://img.shields.io/coveralls/feugy/mini-service/master.svg
 [coveralls-url]: https://coveralls.io/r/feugy/mini-service?branch=master
