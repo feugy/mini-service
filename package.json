@@ -11,14 +11,15 @@
   "scripts": {
     "test": "lab test",
     "lint": "eslint .",
-    "submit-coverage": "cat coverage/lcov.info | coveralls -v"
+    "submit-coverage": "cat coverage/lcov.info | coveralls -v",
+    "nsp": "nsp check"
   },
   "dependencies": {
     "boom": "3.2.2",
     "bunyan": "1.8.1",
     "hapi": "13.5.0",
     "joi": "8.4.2",
-    "request": "2.73.0",
+    "request": "2.74.0",
     "request-promise": "4.0.2"
   },
   "devDependencies": {
@@ -28,6 +29,7 @@
     "lab": "10.9.0",
     "lab-espower-transformer": "1.0.0",
     "moment": "2.13.0",
+    "nsp": "^2.6.1",
     "power-assert": "1.4.1"
   },
   "config": {
