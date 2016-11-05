@@ -2,9 +2,10 @@ const Lab = require('lab')
 const assert = require('power-assert')
 const moment = require('moment')
 const bunyan = require('bunyan')
+const request = require('request-promise')
 const {getClient, startServer} = require('../')
 const {version} = require('../package.json')
-const utils = require('./utils')
+const utils = require('./test-utils')
 
 const lab = exports.lab = Lab.script()
 const {describe, it, before, beforeEach, after} = lab
@@ -125,6 +126,62 @@ describe('service\'s client', () => {
     after(() => server.stop())
 
     declareTests(context)
+
+    it('should not add too much overhead', {timeout: 15e3}, () => {
+
+      const benchmark = {
+        client: () => context.client.greeting('Jane'),
+        direct: () => request({
+          method: 'POST',
+          uri: `${server.info.uri}/api/sample/greeting`,
+          body: {name: 'Jane'},
+          json: true
+        })
+      }
+      const run = (name, results, start, duration) => {
+        const end = () => {
+          if (Date.now() - start >= duration) {
+            return Promise.resolve()
+          }
+          return run(name, results, start, duration)
+        }
+
+        return benchmark[name]()
+          .then(() => {
+            results.count++
+            return end()
+          })
+          .catch(err => {
+            results.errored++
+            results.errors.push(err)
+            return end()
+          })
+      }
+
+      const runBench = (names, results = {}) => {
+        if (names.length === 0) {
+          return Promise.resolve(results)
+        }
+        const name = names.shift()
+        results[name] = {count: 0, errored: 0, errors: []}
+        // heating run
+        return run(name, {count: 0, errored: 0, errors: []}, Date.now(), 1e3)
+          // test run
+          .then(() => run(name, results[name], Date.now(), 5e3))
+          // next bench
+          .then(() => runBench(names, results))
+      }
+
+      return runBench(Object.keys(benchmark))
+        .then(results => {
+          const percentage = results.client.count * 100 / results.direct.count
+          assert(results.direct.count > 1000)
+          assert(results.client.count > 1000)
+          assert.equal(results.direct.errored, 0)
+          assert.equal(results.client.errored, 0)
+          assert(percentage >= 80)
+        })
+    })
   })
 
   describe('a remote client without server', () => {
