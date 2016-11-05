@@ -3,7 +3,7 @@ const bunyan = require('bunyan')
 const assert = require('power-assert')
 const request = require('request-promise')
 const {startServer} = require('../')
-const utils = require('./utils')
+const utils = require('./test-utils')
 
 const lab = exports.lab = Lab.script()
 const {describe, it, before, beforeEach, after, afterEach} = lab

@@ -23,6 +23,7 @@
     "request-promise": "4.0.2"
   },
   "devDependencies": {
+    "benchmark": "2.1.1",
     "coveralls": "2.11.11",
     "eslint": "3.0.1",
     "ghooks": "1.2.4",
