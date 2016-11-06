@@ -57,20 +57,24 @@ describe('service\'s server', () => {
   })
 
   it('should list exposed APIs', () =>
-    startServer({services})
+    startServer({name: 'sample', version: '1.0.0', services})
       .then(server =>
         request({
           method: 'GET',
           url: `${server.info.uri}/api/exposed`,
           json: true
         }).then(exposed => {
-          assert.deepEqual(exposed, [{
-            name: 'sample', id: 'ping', path: '/api/sample/ping', params: []
-          }, {
-            name: 'sample', id: 'greeting', path: '/api/sample/greeting', params: ['name']
-          }, {
-            name: 'sample', id: 'failing', path: '/api/sample/failing', params: []
-          }])
+          assert.deepEqual(exposed, {
+            name: 'sample',
+            version: '1.0.0',
+            apis: [{
+              name: 'sample', id: 'ping', path: '/api/sample/ping', params: []
+            }, {
+              name: 'sample', id: 'greeting', path: '/api/sample/greeting', params: ['name']
+            }, {
+              name: 'sample', id: 'failing', path: '/api/sample/failing', params: []
+            }]
+          })
         }).then(() => server.stop())
           .catch(err => {
             server.stop()
@@ -78,6 +82,76 @@ describe('service\'s server', () => {
           })
       )
   )
+
+  describe('given a started server', () => {
+    let server
+
+    before(() =>
+      startServer({
+        name: 'sample',
+        version: '1.0.0',
+        services
+      }).then(s => {
+        server = s
+      })
+    )
+
+    after(done => {
+      server.stop()
+      done()
+    })
+
+    it('should invoke api without argument', () =>
+      request({
+        method: 'GET',
+        url: `${server.info.uri}/api/sample/ping`
+      }).then(date => {
+        assert(date)
+      })
+    )
+
+    it('should invoke api with argument', () =>
+      request({
+        method: 'POST',
+        url: `${server.info.uri}/api/sample/greeting`,
+        body: {
+          name: 'John'
+        },
+        json: true
+      }).then(greetings => {
+        assert.equal(greetings, 'Hello John !')
+      })
+    )
+
+    it('should handle argument validation', () =>
+      request({
+        method: 'POST',
+        url: `${server.info.uri}/api/sample/greeting`,
+        body: {
+          name: 10
+        },
+        json: true
+      }).then(() => {
+        throw new Error('should have failed')
+      }, ({error}) => {
+        assert(error.message.includes('"name" must be a string'))
+        assert.equal(error.statusCode, 400)
+      })
+    )
+
+    it('should handle api failure', () =>
+      request({
+        method: 'GET',
+        url: `${server.info.uri}/api/sample/failing`
+      }).then(() => {
+        throw new Error('should have failed')
+      }, ({error}) => {
+        const err = JSON.parse(error)
+        assert.equal(err.statusCode, 599)
+        assert.equal(err.message, 'something went really bad')
+      })
+    )
+  })
 
   describe('server with an ordered list of services', () => {
     const initOrder = []

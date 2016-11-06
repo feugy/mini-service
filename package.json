@@ -1,7 +1,8 @@
 {
   "name": "mini-service",
-  "version": "1.3.1",
+  "version": "2.0.0",
   "description": "Micro services done simply. Choose to run them locally or remotely",
+  "main": "./lib/index",
   "repository": {
     "type": "git",
     "url": "https://github.com/feugy/mini-service"
@@ -13,15 +14,14 @@
     "lint": "eslint .",
     "submit-coverage": "cat coverage/lcov.info | coveralls -v",
     "nsp": "nsp check",
-    "prepush": "npm run nsp ; npm test"
+    "prepush": "npm run nsp ; npm test",
+    "update-deps": "next-update -k true"
   },
   "dependencies": {
     "boom": "~4.3.1",
-    "bunyan": "~1.8.9",
     "hapi": "~16.1.1",
     "joi": "~10.4.0",
-    "request": "~2.81.0",
-    "request-promise": "~4.2.0"
+    "mini-client": "~1.0.0"
   },
   "devDependencies": {
     "benchmark": "~2.1.4",
@@ -31,7 +31,10 @@
     "lab": "~13.0.1",
     "lab-espower-transformer": "~1.1.0",
     "moment": "~2.18.1",
+    "next-update": "~1.5.1",
     "nsp": "~2.6.3",
-    "power-assert": "~1.4.2"
+    "power-assert": "~1.4.2",
+    "request": "~2.81.0",
+    "request-promise": "~4.2.0"
   }
 }
