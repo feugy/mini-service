@@ -230,6 +230,8 @@ describe('service\'s client', () => {
           server.on('response', req => invoked.push(req.route.path))
           return remote.ping() // first communication
             .then(() => remote.ping()) // no other communication
+            // let Hapi some time to run post response hooks
+            .then(() => new Promise(resolve => setTimeout(resolve, 100)))
             .then(() => {
               server.stop()
               assert.equal(invoked.length, 3)
