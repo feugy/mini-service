@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "boom": "3.2.2",
-    "bunyan": "1.8.1",
+    "bunyan": "1.8.5",
     "hapi": "13.5.0",
     "joi": "8.4.2",
     "request": "2.74.0",
