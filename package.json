@@ -12,30 +12,26 @@
     "test": "lab test",
     "lint": "eslint .",
     "submit-coverage": "cat coverage/lcov.info | coveralls -v",
-    "nsp": "nsp check"
+    "nsp": "nsp check",
+    "prepush": "npm run nsp ; npm test"
   },
   "dependencies": {
-    "boom": "~3.2.2",
-    "bunyan": "~1.8.5",
-    "hapi": "~13.5.0",
-    "joi": "~8.4.2",
-    "request": "~2.74.0",
-    "request-promise": "~4.0.2"
+    "boom": "~4.3.1",
+    "bunyan": "~1.8.9",
+    "hapi": "~16.1.1",
+    "joi": "~10.4.0",
+    "request": "~2.81.0",
+    "request-promise": "~4.2.0"
   },
   "devDependencies": {
-    "benchmark": "~2.1.1",
-    "coveralls": "~2.11.11",
-    "eslint": "~3.0.1",
-    "ghooks": "~1.2.4",
-    "lab": "~10.9.0",
-    "lab-espower-transformer": "~1.0.0",
-    "moment": "~2.13.0",
-    "nsp": "~2.6.1",
-    "power-assert": "~1.4.1"
-  },
-  "config": {
-    "ghooks": {
-      "pre-push": "npm test"
-    }
+    "benchmark": "~2.1.4",
+    "coveralls": "~2.13.0",
+    "eslint": "~3.19.0",
+    "husky": "~0.13.3",
+    "lab": "~13.0.1",
+    "lab-espower-transformer": "~1.1.0",
+    "moment": "~2.18.1",
+    "nsp": "~2.6.3",
+    "power-assert": "~1.4.2"
   }
 }
