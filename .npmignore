@@ -1,0 +1,14 @@
+node_modules/
+coverage/
+docs/
+examples/
+test/
+*.log
+.travis.yml
+.labrc.js
+.eslintrc.yml
+.eslintignore
+.editorconfig
+.jsdoc.json
+proxy-benchmark.js
+TODO.md

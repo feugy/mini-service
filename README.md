@@ -1,203 +1,106 @@
-[![NPM Version][npm-image]][npm-url]
-[![Dependencies][david-image]][david-url]
-[![Build][travis-image]][travis-url]
-[![Test Coverage][coveralls-image]][coveralls-url]
+# Mini-service
 
-# Simplistic µService skeleton
+Simplistic µService skeleton
 
-The goal of this skeleton is to give the minimal structure to implement a µService, that can be invoked locally or remotely.
+[![npm package][npm-image]][npm-url]
+[![dependencies][david-image]][david-url]
+[![build][travis-image]][travis-url]
+[![coverage][coveralls-image]][coveralls-url]
+
+## Introduction
+
+The goal of mini-service is to give the minimal structure to implement a µService, that can be invoked locally or remotely.
 
 Its principles are the following:
 - very easy to add new service api endpoints
 - easy to use client interface, same usage both locally and remotely
 - hide deployment details and provide simple-yet-working solution
-- promises based
+- promises based (and thus, async/await compatible)
 
 mini-service uses the latest ES6 features, so it requires node 6+
 
-## Client usage
 
-In a nodejs module *caller* that needs to use this µService *service*, add the µService as NPM dependency:
+## Example
 
-`> npm install --save-dev service`
+Here is a simple calculator service definition, that exposes functions to add and subtract numbers.
 
-Then require the exposed interface (given that service exposes an `add()`api):
-
+`calc-service.js`
 ```javascript
-const client = require('service')()
-// you can also provide options, see below..
-
-console.log(client.version)
-// outputs µService NPM version
-
-client.init().then(() => {
-  client.add(10, 5).then(sum => console.log(sum))
-})
-
-// outputs 15
-```
-
-## Server usage
-
-Inside your *service* module, you can expose as many APIs as you want.
-Go to the `/lib/services/index.js` file, and add your own code, e.g.
-
-```javascript
-module.exports = [{
-  // you can group your API and give them a name
-  name: 'calc',
-  // you need to provide an initialization function, that will take options,
-  // and returns a Promise when APIs are ready to be used
+module.exports = {
+  name: 'calc-service',
+  version: '1.0.0',
   init: () => Promise.resolve({
-    // each exposed API is a function that takes as many parameters as needed, and returns a Promise
+    // each exposed APIs must return a promise
     add: (a, b) => Promise.resolve(a + b),
     subtract: (a, b) => Promise.resolve(a - b)
   })
-}]
+}
 ```
 
-For an example, see [sample.js](./test/fixtures/sample.js).
+If you want to use it locally in a different file:
+require the service definition, and create a [mini-client][mini-client-url] with it
 
-Note: you don't need to put all the code in this file, you're free to divide it into different files/modules.
-In that case, simply require and add them into the array exported by `/lib/services/index.js`.
-
-## How can my µService be deployed ?
-
-You can use it locally (same node.js instance as the caller code), or remotely (deployed as remote HTTP server).
-Local is the default mode.
-
-To use remotely, simply:
-
- - start your µService as an Http server by running `> npm start`
- - from the caller code, provide the Http server url to your client: `const client = require('service')({remote: 'http://my-service:8080')`
-
-And that's all !
-
-## My service needs to connect to DB/open some files/use asynchronous initialization code...
-
-The `init()` function is the right place to do that:
-
+`caller-local.js`
 ```javascript
-const fs = require('readFile')
+const {getClient} = require('mini-service')
+const calcService = require('./calc-service')
 
-module.exports = [{
-  name: 'calc'
-  init: () => new Promise((resolve, reject) => {
-    // let's say we need to read a configuration file...
-    fs.readFile('config.json', (err, content) => {
-      if (err) return reject(err)
-      // initialization goes on...
-      // when you're ready, resolve the promise with the exposed functions
-      resolve({
-        add: (a, b) => Promise.resolve(a + b)
-        subtract: (a, b) => Promise.resolve(a - b)
-      })
-    })
-  })
-}]
+const calc = getClient(calcService)
 ```
 
-## How do I configure my service initialization ?
+Then, init it (it's an async operation) and invoke any exposed API you need:
 
-The `init()` function takes a single Object parameter, that can be used for options:
-
+`caller-local.js`
 ```javascript
-const fs = require('readFile')
-
-module.exports = [{
-  name: 'calc'
-  // opts is an object
-  init: opts => new Promise((resolve, reject) => {
-    // use file given in options instead of hardcoded the value
-    fs.readFile(opts.config, (err, content) => {
-      if (err) return reject(err)
-      resolve({
-        add: (a, b) => Promise.resolve(a + b)
-        subtract: (a, b) => Promise.resolve(a - b)
-      })
-    })
-  })
-}]
+calc.init().then(() =>
+  calc.add(10, 5).then(sum => console.log(`Result is: ${sum}`))
+)
 ```
 
-To specify actual parameter values, change the caller code:
+Now let's imagine you need to deploy your calculator service in a standalone Http server, and invoke it from a remote server.
+To turn your local service into a real server, expose your service definition with mini-service's `startServer()`:
 
-- local µService, in the *caller* code:
-  ```javascript
-  const client = require({
-    // all options are regrouped under serviceOpts
-    serviceOpts: {
-      // reuse service name as property, and give any value you need
-      calc: {config: './config.json'}
-    }
-  })
-  ```
-
-- remote µService, in `./bin/start.js` file:
-  ```javascript
-  const startServer = require('../lib/server')
-
-  startServer({
-    // all options are grouped under serviceOpts
-    serviceOpts: {
-      // use service name as property, and give any value you need
-      calc: {config: './config.json'}
-    }
-  })
-  ```
-
-In addition to the specified options, your service `init()` parameter also contains `logger` property, which is the overall Bunyan logger.
-
-## How can I exposed function from different files ?
-
-Instead of putting everything in the same file, you can use as many files as you want.
-A simple file layout example:
-
-`/lib/services/index.js`
-
+`calc-service.js`
 ```javascript
-module.exports = [
-  {name: 'calc', init: require('./calc')},
-  {name: 'utilities', init: require('./utilities')}
-]
+const {startServer} = require('mini-service')
+
+module.exports = {...} // same service definition as above
+startServer(module.exports)
 ```
+A server is now listening on port 3000.
 
-`/lib/services/calc.js`
+And to use it from a remote caller, creates a mini-client giving the proper url:
 
+`caller-remote.js`
 ```javascript
-// you need to provide an initialization function, that will take options,
-// and returns a Promise when APIs are ready to be used
-module.exports = options => Promise.resolve({
-  // each exposed API is a function that takes as many parameters as needed, and returns a Promise
-  add: (a, b) => Promise.resolve(a + b),
-  subtract: (a, b) => Promise.resolve(a - b)
+const getClient = require('mini-client') // same as: `const {getClient} = require('mini-service')`
+
+const calc = getClient({
+  remote: 'http://localhost:3000'
 })
 ```
+Please note that you **don't need to require the service definition anymore**.
 
-## How can I share initialisation between different files ?
+Usage is exactly the same as previously.
 
-Services will be initialized serially, so you can use this order to perform general initialization.
-
+`caller-remote.js`
 ```javascript
-// shared object among services
-let sql
-
-module.exports = [{
-  name: 'global-init',
-  init: options => new Promise(resolve => {
-    sql = mysqljs(options)
-    // no need to expose anything
-    resolve()
-  })
-}, {
-  name: 'calc',
-  // pass your shared object to your init method, as well as other options
-  init: opts => require('./calc')(sql, opts)
-}, {
-  name: 'utilities',
-  init: opts => require('./utilities')(sql, opts)
-}]
+calc.init().then(() =>
+  calc.add(10, 5).then(sum => console.log(`Result is: ${sum}`))
+)
 ```
+
+Simplistic, but it fits lots of usecases
+
+
+## Going further
+
+Please also checkout:
+- [API Reference][api-reference-url]
+- [Frequently asked questions][faq]
+- [Examples][examples]
+
+FAQ covers topics like modularity, aynsc initialization, parameters validation...
 
 ## Acknowledgements
 
@@ -208,7 +111,18 @@ This project was kindly sponsored by [nearForm][nearform].
 
 Copyright [Damien Simonin Feugas][feugy] and other contributors, licensed under [MIT](./LICENSE).
 
+
 ## Changelog
+
+### 2.0.0
+- Externalized client using [mini-client][mini-client-url], to decouple clients and service code
+- Introduce new terminology, with service descriptor and API groups [breaking change]
+- Allow to declare API without groups
+- Allow to declare API validation in group options
+- Force name+version on local client [breaking change]
+- When parsing exposed APIs, expect 'group' property instead of 'name' [breaking change]
+- Better documentation and code examples
+- More understandable error messages
 
 ### 1.3.0
 - Add NSP checks, and upgrade vulnerable dependency
@@ -252,3 +166,7 @@ Copyright [Damien Simonin Feugas][feugy] and other contributors, licensed under 
 [travis-url]: https://travis-ci.org/feugy/mini-service
 [coveralls-image]: https://img.shields.io/coveralls/feugy/mini-service/master.svg
 [coveralls-url]: https://coveralls.io/r/feugy/mini-service?branch=master
+[api-reference-url]: https://feugy.github.io/mini-service/
+[faq]: https://minigithub.com/feugy/mini-service/tree/master/FAQ.md
+[example]: https://github.com/feugy/mini-service/tree/master/examples
+[mini-client]: https://feugy.github.io/mini-client/
