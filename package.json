@@ -1,37 +1,47 @@
 {
   "name": "mini-service",
-  "version": "1.3.1",
+  "version": "2.0.0",
   "description": "Micro services done simply. Choose to run them locally or remotely",
+  "author": "feugy <damien.feugas@gmail.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/feugy/mini-service",
   "repository": {
     "type": "git",
     "url": "https://github.com/feugy/mini-service"
   },
-  "author": "feugy <damien.feugas@gmail.com>",
-  "license": "MIT",
+  "main": "./lib/index",
   "scripts": {
-    "test": "lab test",
-    "lint": "eslint .",
-    "submit-coverage": "cat coverage/lcov.info | coveralls -v",
+    "doc": "jsdoc -c jsdoc.json",
+    "watch-doc": "watch \"npm run doc\" ./lib",
     "nsp": "nsp check",
-    "prepush": "npm run nsp ; npm test"
+    "lint": "eslint .",
+    "prepush": "npm run nsp & npm test",
+    "submit-coverage": "cat coverage/lcov.info | coveralls -v",
+    "test": "lab test",
+    "update-deps": "next-update -k true"
   },
   "dependencies": {
     "boom": "~4.3.1",
-    "bunyan": "~1.8.9",
     "hapi": "~16.1.1",
     "joi": "~10.4.0",
-    "request": "~2.81.0",
-    "request-promise": "~4.2.0"
+    "mini-client": "~2.0.0",
+    "mini-service-utils": "~2.2.1"
   },
   "devDependencies": {
     "benchmark": "~2.1.4",
     "coveralls": "~2.13.0",
+    "docdash": "~0.4.0",
     "eslint": "~3.19.0",
     "husky": "~0.13.3",
+    "jsdoc": "~3.4.3",
     "lab": "~13.0.1",
     "lab-espower-transformer": "~1.1.0",
     "moment": "~2.18.1",
+    "next-update": "~1.5.1",
     "nsp": "~2.6.3",
-    "power-assert": "~1.4.2"
+    "power-assert": "~1.4.2",
+    "request": "~2.81.0",
+    "request-promise": "~4.2.0",
+    "watch": "~1.0.2"
   }
 }

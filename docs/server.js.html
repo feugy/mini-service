@@ -1,4 +1,43 @@
-const {Server} = require('hapi')
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>server.js - Documentation</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-mini-service.html">mini-service</a><ul class='methods'><li data-type='method'><a href="module-mini-service.html#.getClient">getClient</a></li><li data-type='method'><a href="module-mini-service.html#.startServer">startServer</a></li></ul></li><li><a href="module-server.html">server</a><ul class='methods'><li data-type='method'><a href="module-server.html#~startServer">startServer</a></li></ul></li></ul>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">server.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>const {Server} = require('hapi')
 const joi = require('joi')
 const boom = require('boom')
 const {getLogger, extractGroups, getParamNames, arrayToObj, validateParams, isApi}= require('mini-service-utils')
@@ -12,7 +51,7 @@ const {getLogger, extractGroups, getParamNames, arrayToObj, validateParams, isAp
  * @typedef {Object} ExposedAPI
  * @property {String} name            group name
  * @property {String} id              exposed api id
- * @property {Array<String>} exposed  api parameter names
+ * @property {Array&lt;String>} exposed  api parameter names
  * @property {String} path            http endpoint full path
  */
 
@@ -21,7 +60,7 @@ const {getLogger, extractGroups, getParamNames, arrayToObj, validateParams, isAp
  * @summary Register all given API groups to an Hapi server
  * @description All groups will be initialized first (order matters) using the given options, at server start.
  * API could be exposed:
- * - directly using `opts.name` & `opts.init`
+ * - directly using `opts.name` &amp; `opts.init`
  * - with groups using `opts.groups` and opts.groupOpts`
  *
  * @param {Hapi} server         in which APIs are exposed as Http endpoints
@@ -30,13 +69,13 @@ const {getLogger, extractGroups, getParamNames, arrayToObj, validateParams, isAp
  * a Promise resolved with exposed APIs (an object with functions that returns promises).
  * Takes precedence over `opts.groups` as a simpler alternative of API group.
  * The `opts` object itself will be used as options for this single API group.
- * @param {Array<Object>} [opts.groups] exposed APIs groups, an array containing for each group:
+ * @param {Array&lt;Object>} [opts.groups] exposed APIs groups, an array containing for each group:
  * @param {String} opts.groups.name       group friendly name (a valid JavaScript identifier)
  * @param {Function} opts.groups.init     initialization function that takes options as parameter and returns
  * a Promise resolved with exposed APIs (an object with functions that returns promises)
  * @param {Object} [opts.groupOpts]     per-group configuration. might contain a properties named after group
  * @param {Object} logger       {@link https://github.com/trentm/node-bunyan|bunyan} compatible logger
- * @returns {Promise<Array<ExposedAPI>>} promise   when all groups have been registered as Hapi plugins,
+ * @returns {Promise&lt;Array&lt;ExposedAPI>>} promise   when all groups have been registered as Hapi plugins,
  * with the list of exposed APIs
  */
 const registerAsPlugins = (server, opts, logger) => {
@@ -60,7 +99,7 @@ const registerAsPlugins = (server, opts, logger) => {
                 const path = `/api/${group}/${id}`
                 const config = {validate: {}}
                 // adds input validation if needed
-                if (api.length && api.validate) {
+                if (api.length &amp;&amp; api.validate) {
                   try {
                     const schema = joi.object(arrayToObj(api.validate, params)).unknown(false)
                     // use custom validation instead of Joi schema for a better reporting in case of extra parameters
@@ -157,7 +196,7 @@ const registerAsPlugins = (server, opts, logger) => {
  * a Promise resolved with exposed APIs (an object with functions that returns promises).
  * Takes precedence over `opts.groups` as a simpler alternative of API group.
  * The `opts` object itself will be used as options for this single API group.
- * @param {Array<Object>} [opts.groups] exposed APIs groups, an array containing for each group:
+ * @param {Array&lt;Object>} [opts.groups] exposed APIs groups, an array containing for each group:
  * @param {String} opts.groups.name       group friendly name (a valid JavaScript identifier)
  * @param {Function} opts.groups.init     initialization function that takes options as parameter and returns
  * a Promise resolved with exposed APIs (an object with functions that returns promises)
@@ -172,7 +211,7 @@ module.exports = (opts = {}) => {
   }, opts)
 
   const {port, name, version, logger} = options
-  // required name & version
+  // required name &amp; version
   if (!name || !version) {
     throw new Error('Server needs "name" and "version" options')
   }
@@ -205,3 +244,22 @@ module.exports = (opts = {}) => {
       throw err
     })
 }
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/linenumber.js"></script>
+</body>
+</html>

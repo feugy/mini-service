@@ -1,4 +1,4 @@
-const {getLogger} = require('../lib/utils')
+const {getLogger} = require('mini-service-utils')
 
 // store logger levels for further restoration
 let loggerLevels = null
