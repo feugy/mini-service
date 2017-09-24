@@ -26,7 +26,7 @@
     "hapi": "~16.6.0",
     "joi": "~10.6.0",
     "mini-client": "~2.0.0",
-    "mini-service-utils": "~2.2.1"
+    "mini-service-utils": "~2.3.0"
   },
   "devDependencies": {
     "benchmark": "~2.1.4",

@@ -3,6 +3,7 @@ const bunyan = require('bunyan')
 const assert = require('power-assert')
 const request = require('request-promise')
 const crc32 = require('crc32')
+const {checksumHeader} = require('mini-service-utils')
 const {startServer} = require('../')
 const utils = require('./test-utils')
 
@@ -127,7 +128,7 @@ describe('service\'s server', () => {
         json: true,
         resolveWithFullResponse: true
       }).then(response1 => {
-        assert(checksum === response1.headers['x-service-crc'])
+        assert(checksum === response1.headers[checksumHeader])
         return request({
           method: 'POST',
           url: `${server.info.uri}/api/sample/greeting`,
