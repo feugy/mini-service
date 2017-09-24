@@ -41,7 +41,15 @@
 const joi = require('joi')
 const boom = require('boom')
 const crc32 = require('crc32')
-const {getLogger, extractGroups, getParamNames, arrayToObj, validateParams, isApi}= require('mini-service-utils')
+const {
+  arrayToObj,
+  checksumHeader,
+  extractGroups,
+  getLogger,
+  getParamNames,
+  isApi,
+  validateParams
+} = require('mini-service-utils')
 
 /**
  * @module server
@@ -122,7 +130,7 @@ const registerAsPlugins = (server, opts, logger) => {
                     const payload = req.payload || {}
                     try {
                       api(...params.map(prop => payload[prop]))
-                        .then(res => reply(res).header('x-service-crc', checksum))
+                        .then(res => reply(res).header(checksumHeader, checksum))
                         .catch(err => reply(boom.create(599,  `Error while calling API ${id}: ${err.message}`)))
                     } catch (exc) {
                       // bubble any synchronous problem (not returning promise...)

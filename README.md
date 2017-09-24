@@ -112,19 +112,60 @@ This project was kindly sponsored by [nearForm][nearform].
 Copyright [Damien Simonin Feugas][feugy] and other contributors, licensed under [MIT](./LICENSE).
 
 
+## 2.x to 3.x changes
+
+Groups are now used as sub-objects of mini-client.
+
+Given a service exposing:
+- api `ping` without group *(or if group has same name as overall service)*
+- group `a` with apis `ping` & `pong`
+- group `b` with api `ping`
+
+the final Mini-client will be:
+```javascript
+client = {
+  ping(),
+  a: {
+    ping(),
+    pong()
+  },
+  b: {
+    ping()
+  }
+}
+```
+
+
+## 1.x to 2.x changes
+
+Local services, as remote services, **must** have `name` and `version` options defined
+
+When defining services, the `name` property was renamed to `group`:
+```javascript
+module.exports = [{
+  group: 'calc', // was name previously
+  init: () => Promise.resolve({
+    add: (a, b) => ...,
+    subtract: (a, b) => ...
+  })
+```
+
 ## Changelog
 
-### 2.1.0
+### 3.0.0
+- [*Breaking change*] Use mini-client@3.0.0 that uses sub-objects for exposed groups.
 - Returns CRC32 checksum of exposed API during every call, to allow mini-client checking compatibility
 - Dependency update (except Joi 11 that introduced a regression in Hapi)
 
+### 2.1.0
+
 ### 2.0.0
 - Externalized client using [mini-client][mini-client-url], to decouple clients and service code
-- Introduce new terminology, with service descriptor and API groups [breaking change]
+- [*Breaking change*] Introduce new terminology, with service descriptor and API groups
+- [*Breaking change*] When parsing exposed APIs, expect 'group' property instead of 'name'
 - Allow to declare API without groups
 - Allow to declare API validation in group options
-- Force name+version on local client [breaking change]
-- When parsing exposed APIs, expect 'group' property instead of 'name' [breaking change]
+- [*Breaking change*] Force name+version on local client
 - Better documentation and code examples
 - More understandable error messages
 
