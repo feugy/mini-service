@@ -2,6 +2,7 @@ const Lab = require('lab')
 const bunyan = require('bunyan')
 const assert = require('power-assert')
 const request = require('request-promise')
+const crc32 = require('crc32')
 const {startServer} = require('../')
 const utils = require('./test-utils')
 
@@ -79,39 +80,20 @@ describe('service\'s server', () => {
       })
   })
 
-  it('should list exposed APIs', () =>
-    startServer({name, version, groups})
-      .then(server =>
-        request({
-          method: 'GET',
-          url: `${server.info.uri}/api/exposed`,
-          json: true
-        }).then(exposed => {
-          assert.deepEqual(exposed, {
-            name,
-            version,
-            apis: [{
-              group: 'sample', id: 'ping', path: '/api/sample/ping', params: []
-            }, {
-              group: 'sample', id: 'greeting', path: '/api/sample/greeting', params: ['name']
-            }, {
-              group: 'sample', id: 'failing', path: '/api/sample/failing', params: []
-            }, {
-              group: 'sample', id: 'errored', path: '/api/sample/errored', params: []
-            }, {
-              group: 'sample', id: 'notCompliant', path: '/api/sample/notCompliant', params: []
-            }]
-          })
-        }).then(() => server.stop())
-          .catch(err => {
-            server.stop()
-            throw err
-          })
-      )
-  )
-
   describe('given a started server', () => {
     let server
+    const exposedApis = [{
+      group: 'sample', id: 'ping', params: [], path: '/api/sample/ping'
+    }, {
+      group: 'sample', id: 'greeting', params: ['name'], path: '/api/sample/greeting'
+    }, {
+      group: 'sample', id: 'failing', params: [], path: '/api/sample/failing'
+    }, {
+      group: 'sample', id: 'errored', params: [], path: '/api/sample/errored'
+    }, {
+      group: 'sample', id: 'notCompliant', params: [], path: '/api/sample/notCompliant'
+    }]
+    const checksum = crc32(JSON.stringify(exposedApis))
 
     before(() =>
       startServer({name, version, groups}).then(s => {
@@ -123,6 +105,42 @@ describe('service\'s server', () => {
       server.stop()
       done()
     })
+
+    it('should list exposed APIs', () =>
+      request({
+        method: 'GET',
+        url: `${server.info.uri}/api/exposed`,
+        json: true
+      }).then(exposed => {
+        assert.deepEqual(exposed, {
+          name,
+          version,
+          apis: exposedApis
+        })
+      })
+    )
+
+    it('should include CRC32 as header', () =>
+      request({
+        method: 'GET',
+        url: `${server.info.uri}/api/sample/ping`,
+        json: true,
+        resolveWithFullResponse: true
+      }).then(response1 => {
+        assert(checksum === response1.headers['x-service-crc'])
+        return request({
+          method: 'POST',
+          url: `${server.info.uri}/api/sample/greeting`,
+          body: {
+            name: 'John'
+          },
+          json: true,
+          resolveWithFullResponse: true
+        }).then(response2 => {
+          assert(checksum === response2.headers['x-service-crc'])
+        })
+      })
+    )
 
     it('should invoke api without argument', () =>
       request({

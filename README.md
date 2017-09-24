@@ -114,6 +114,10 @@ Copyright [Damien Simonin Feugas][feugy] and other contributors, licensed under 
 
 ## Changelog
 
+### 2.1.0
+- Returns CRC32 checksum of exposed API during every call, to allow mini-client checking compatibility
+- Dependency update (except Joi 11 that introduced a regression in Hapi)
+
 ### 2.0.0
 - Externalized client using [mini-client][mini-client-url], to decouple clients and service code
 - Introduce new terminology, with service descriptor and API groups [breaking change]
