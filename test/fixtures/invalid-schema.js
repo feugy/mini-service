@@ -12,7 +12,7 @@ module.exports = {
        * @param {String} message    simple message received
        * @returns {Promise<String>} resolved with the sent message
        */
-      invalidValidator(message) {
+      invalidValidator (message) {
         return Promise.resolve(message)
       }
     }
