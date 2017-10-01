@@ -11,7 +11,6 @@ const lab = exports.lab = Lab.script()
 const {describe, it, before, beforeEach, after, afterEach} = lab
 
 describe('service\'s server', () => {
-
   let started
   const name = 'test-server'
   const version = '1.0.0'
@@ -93,6 +92,10 @@ describe('service\'s server', () => {
       group: 'sample', id: 'errored', params: [], path: '/api/sample/errored'
     }, {
       group: 'sample', id: 'notCompliant', params: [], path: '/api/sample/notCompliant'
+    }, {
+      group: 'sample', id: 'getUndefined', params: [], path: '/api/sample/getUndefined'
+    }, {
+      group: 'sample', id: 'boomError', params: [], path: '/api/sample/boomError'
     }]
     const checksum = crc32(JSON.stringify(exposedApis))
 
@@ -161,7 +164,7 @@ describe('service\'s server', () => {
         },
         json: true
       }).then(greetings => {
-        assert.equal(greetings, 'Hello John !')
+        assert(greetings === 'Hello John !')
       })
     )
 
@@ -178,7 +181,17 @@ describe('service\'s server', () => {
       }, ({error}) => {
         assert(error.message.includes('Incorrect parameters for API greeting'))
         assert(error.message.includes('"name" must be a string'))
-        assert.equal(error.statusCode, 400)
+        assert(error.statusCode === 400)
+      })
+    )
+
+    it('should handle undefined results', () =>
+      request({
+        method: 'GET',
+        url: `${server.info.uri}/api/sample/getUndefined`,
+        json: true
+      }).then(result => {
+        assert(result === undefined)
       })
     )
 
@@ -190,7 +203,7 @@ describe('service\'s server', () => {
         throw new Error('should have failed')
       }, ({error}) => {
         const err = JSON.parse(error)
-        assert.equal(err.statusCode, 599)
+        assert(err.statusCode === 599)
         assert(err.message.includes('Error while calling API failing'))
         assert(err.message.includes('something went really bad'))
       })
@@ -204,7 +217,7 @@ describe('service\'s server', () => {
         throw new Error('should have failed')
       }, ({error}) => {
         const err = JSON.parse(error)
-        assert.equal(err.statusCode, 599)
+        assert(err.statusCode === 599)
         assert(err.message.includes('Error while calling API errored'))
         assert(err.message.includes('errored API'))
       })
@@ -218,9 +231,22 @@ describe('service\'s server', () => {
         throw new Error('should have failed')
       }, ({error}) => {
         const err = JSON.parse(error)
-        assert.equal(err.statusCode, 599)
+        assert(err.statusCode === 599)
         assert(err.message.includes('Error while calling API notCompliant'))
         assert(err.message.includes('.then is not a function'))
+      })
+    )
+
+    it('should propagate Boom errors', () =>
+      request({
+        method: 'GET',
+        url: `${server.info.uri}/api/sample/boomError`
+      }).then(() => {
+        throw new Error('should have failed')
+      }, ({error}) => {
+        const err = JSON.parse(error)
+        assert(err.statusCode === 401)
+        assert(err.message.includes('Custom authorization error'))
       })
     )
   })
@@ -264,7 +290,7 @@ describe('service\'s server', () => {
           assert.fail('', '', 'server shouln\'t have start')
         }, err => {
           assert(err instanceof Error)
-          assert.notEqual(err.message.indexOf('group 1 failed to initialize'), -1)
+          assert(err.message.includes('group 1 failed to initialize'))
           assert.deepEqual(initOrder, [0])
         })
     )
@@ -303,7 +329,7 @@ describe('service\'s server', () => {
         throw new Error('should have failed')
       }, err => {
         assert.ok(err instanceof Error)
-        assert.notEqual(err.message.indexOf('"name" is required'), -1)
+        assert(err.message.indexOf('"name" is required') !== -1)
       })
     )
 
@@ -319,7 +345,7 @@ describe('service\'s server', () => {
         throw new Error('should have failed')
       }, err => {
         assert.ok(err instanceof Error)
-        assert.notEqual(err.message.indexOf('"init" is required'), -1)
+        assert(err.message.includes('"init" is required'))
       })
     )
 
@@ -336,7 +362,7 @@ describe('service\'s server', () => {
         throw new Error('should have failed')
       }, err => {
         assert.ok(err instanceof Error)
-        assert.notEqual(err.message.indexOf('didn\'t returned a promise'), -1)
+        assert(err.message.includes('didn\'t returned a promise'))
       })
     )
 

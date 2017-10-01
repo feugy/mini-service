@@ -152,6 +152,10 @@ module.exports = [{
 
 ## Changelog
 
+### 3.1.0
+- Don't wrap Boom errors to keep http status codes
+- Use [standard.js](https://standardjs.com/) lint configuration
+
 ### 3.0.0
 - [*Breaking change*] Use mini-client@3.0.0 that uses sub-objects for exposed groups.
 - Returns CRC32 checksum of exposed API during every call, to allow mini-client checking compatibility
