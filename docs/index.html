@@ -65,11 +65,11 @@
 <pre class="prettyprint source lang-javascript"><code>module.exports = {
   name: 'calc-service',
   version: '1.0.0',
-  init: () => Promise.resolve({
-    // each exposed APIs must return a promise
-    add: (a, b) => Promise.resolve(a + b),
-    subtract: (a, b) => Promise.resolve(a - b)
-  })
+  init: () => {
+    // each exposed APIs could also return a promise
+    add: (a, b) => a + b,
+    subtract: (a, b) => a - b
+  }
 }</code></pre><p>If you want to use it locally in a different file:
 require the service definition, and create a [mini-client][mini-client-url] with it</p>
 <p><code>caller-local.js</code></p>
@@ -132,7 +132,15 @@ const calc = getClient({
   init: () => Promise.resolve({
     add: (a, b) => ...,
     subtract: (a, b) => ...
-  })</code></pre><h2>Changelog</h2><h3>3.0.0</h3><ul>
+  })</code></pre><h2>Changelog</h2><h3>3.2.0</h3><ul>
+<li>Support synchronous <code>init()</code> and API functions</li>
+<li>Dependencies update</li>
+</ul>
+<h3>3.1.0</h3><ul>
+<li>Don't wrap Boom errors to keep http status codes</li>
+<li>Use <a href="https://standardjs.com/">standard.js</a> lint configuration</li>
+</ul>
+<h3>3.0.0</h3><ul>
 <li>[<em>Breaking change</em>] Use mini-client@3.0.0 that uses sub-objects for exposed groups.</li>
 <li>Returns CRC32 checksum of exposed API during every call, to allow mini-client checking compatibility</li>
 <li>Dependency update (except Joi 11 that introduced a regression in Hapi)</li>
