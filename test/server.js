@@ -17,6 +17,9 @@ describe('service\'s server', () => {
   const groups = [{
     name: 'sample',
     init: require('./fixtures/sample')
+  }, {
+    name: 'synchronous',
+    init: require('./fixtures/synchronous')
   }]
   const init = () => Promise.resolve({})
 
@@ -91,11 +94,15 @@ describe('service\'s server', () => {
     }, {
       group: 'sample', id: 'errored', params: [], path: '/api/sample/errored'
     }, {
-      group: 'sample', id: 'notCompliant', params: [], path: '/api/sample/notCompliant'
-    }, {
       group: 'sample', id: 'getUndefined', params: [], path: '/api/sample/getUndefined'
     }, {
       group: 'sample', id: 'boomError', params: [], path: '/api/sample/boomError'
+    }, {
+      group: 'synchronous', id: 'greeting', params: ['name'], path: '/api/synchronous/greeting'
+    }, {
+      group: 'synchronous', id: 'getUndefined', params: [], path: '/api/synchronous/getUndefined'
+    }, {
+      group: 'synchronous', id: 'boomError', params: [], path: '/api/synchronous/boomError'
     }]
     const checksum = crc32(JSON.stringify(exposedApis))
 
@@ -165,6 +172,16 @@ describe('service\'s server', () => {
         json: true
       }).then(greetings => {
         assert(greetings === 'Hello John !')
+        return request({
+          method: 'POST',
+          url: `${server.info.uri}/api/synchronous/greeting`,
+          body: {
+            name: 'John'
+          },
+          json: true
+        })
+      }).then(greetings => {
+        assert(greetings === 'Hello John !')
       })
     )
 
@@ -182,6 +199,20 @@ describe('service\'s server', () => {
         assert(error.message.includes('Incorrect parameters for API greeting'))
         assert(error.message.includes('"name" must be a string'))
         assert(error.statusCode === 400)
+        return request({
+          method: 'POST',
+          url: `${server.info.uri}/api/sample/greeting`,
+          body: {
+            name: 10
+          },
+          json: true
+        })
+      }).then(() => {
+        throw new Error('should have failed')
+      }, ({error}) => {
+        assert(error.message.includes('Incorrect parameters for API greeting'))
+        assert(error.message.includes('"name" must be a string'))
+        assert(error.statusCode === 400)
       })
     )
 
@@ -190,6 +221,13 @@ describe('service\'s server', () => {
         method: 'GET',
         url: `${server.info.uri}/api/sample/getUndefined`,
         json: true
+      }).then(result => {
+        assert(result === undefined)
+        return request({
+          method: 'GET',
+          url: `${server.info.uri}/api/sample/getUndefined`,
+          json: true
+        })
       }).then(result => {
         assert(result === undefined)
       })
@@ -223,24 +261,20 @@ describe('service\'s server', () => {
       })
     )
 
-    it('should handle not compliant failure', () =>
-      request({
-        method: 'GET',
-        url: `${server.info.uri}/api/sample/notCompliant`
-      }).then(() => {
-        throw new Error('should have failed')
-      }, ({error}) => {
-        const err = JSON.parse(error)
-        assert(err.statusCode === 599)
-        assert(err.message.includes('Error while calling API notCompliant'))
-        assert(err.message.includes('.then is not a function'))
-      })
-    )
-
     it('should propagate Boom errors', () =>
       request({
         method: 'GET',
         url: `${server.info.uri}/api/sample/boomError`
+      }).then(() => {
+        throw new Error('should have failed')
+      }, ({error}) => {
+        const err = JSON.parse(error)
+        assert(err.statusCode === 401)
+        assert(err.message.includes('Custom authorization error'))
+        return request({
+          method: 'GET',
+          url: `${server.info.uri}/api/sample/boomError`
+        })
       }).then(() => {
         throw new Error('should have failed')
       }, ({error}) => {
@@ -349,20 +383,16 @@ describe('service\'s server', () => {
       })
     )
 
-    it('should check that group init function returns a Promise', () =>
+    it('should manage init function not returning Promise', () =>
       startServer({
         name,
         version,
         groups: [{
           name: 'test',
-          init: () => ({test: true})
+          init: () => ({test: () => 'test'})
         }]
       }).then(server => {
         server.stop()
-        throw new Error('should have failed')
-      }, err => {
-        assert.ok(err instanceof Error)
-        assert(err.message.includes('didn\'t returned a promise'))
       })
     )
 

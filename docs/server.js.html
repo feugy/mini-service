@@ -57,6 +57,18 @@ const {
 
 /**
  * @private
+ * @summary Write error in HTTP response
+ * @description If error is a Boom error, writes it as is. Otherwise, wrapps it into a 599 Boom error
+ * @param {string}   id     exposed api id
+ * @param {Function} reply  Hapi response interface
+ * @param {Error}    err    processed error
+ * @returns {Response}      written Http response
+ */
+const handleError = (id, reply, err) =>
+  reply(err.isBoom ? err : boom.create(599, `Error while calling API ${id}: ${err.message}`))
+
+/**
+ * @private
  * @typedef {Object} ExposedAPI
  * @property {String} name            group name
  * @property {String} id              exposed api id
@@ -96,54 +108,52 @@ const registerAsPlugins = (server, opts, logger) => {
       // all groups will be considered as Hapi plugins
       groups.map(({name: group, init}) => {
         const plugin = {
-          register: (serv, pluginOpts, next) => {
-            const initialized = init(Object.assign({logger}, groupOpts[group]))
-            if (Promise.resolve(initialized) !== initialized) {
-              return next(new Error(`group ${group} init() method didn't returned a promise`))
-            }
-            return initialized.then(apis => {
-              if (!isApi(apis)) return
-              for (const id in apis) {
-                const api = apis[id]
-                const params = getParamNames(api)
-                const path = `/api/${group}/${id}`
-                const config = {validate: {}}
-                // adds input validation if needed
-                if (api.length &amp;&amp; api.validate) {
-                  try {
-                    const schema = joi.object(arrayToObj(api.validate, params)).unknown(false)
-                    // use custom validation instead of Joi schema for a better reporting in case of extra parameters
-                    config.validate.payload = (values, validationOpts, done) =>
-                      done(validateParams(values, schema, id, params.length))
-                  } catch (exc) {
-                    throw new Error(`Invalid validation schema for API ${id} (from group ${group}): ${exc.message}`)
-                  }
-                }
-                // keep the list of exposed functions
-                exposed.push({group, id, params, path})
-                // publish each API as a POST endpoint
-                serv.route({
-                  method: api.length ? 'POST' : 'GET',
-                  path,
-                  config,
-                  handler: (req, reply) => {
-                    const payload = req.payload || {}
+          register: (serv, pluginOpts, next) =>
+            // supports synchronous and asynchonous init
+            Promise.resolve(init(Object.assign({logger}, groupOpts[group])))
+              .then(apis => {
+                if (!isApi(apis)) return
+                for (const id in apis) {
+                  const api = apis[id]
+                  const params = getParamNames(api)
+                  const path = `/api/${group}/${id}`
+                  const config = {validate: {}}
+                  // adds input validation if needed
+                  if (api.length &amp;&amp; api.validate) {
                     try {
-                      api(...params.map(prop => payload[prop]))
-                        .then(res => reply(res).header(checksumHeader, checksum))
-                        .catch(err => reply(boom.create(599,  `Error while calling API ${id}: ${err.message}`)))
+                      const schema = joi.object(arrayToObj(api.validate, params)).unknown(false)
+                      // use custom validation instead of Joi schema for a better reporting in case of extra parameters
+                      config.validate.payload = (values, validationOpts, done) =>
+                        done(validateParams(values, schema, id, params.length))
                     } catch (exc) {
-                      // bubble any synchronous problem (not returning promise...)
-                      reply(boom.create(599, `Error while calling API ${id}: ${exc.message}`))
+                      throw new Error(`Invalid validation schema for API ${id} (from group ${group}): ${exc.message}`)
                     }
                   }
-                })
-                logger.debug(`API ${path} exposed`)
-              }
-            })
+                  // keep the list of exposed functions
+                  exposed.push({group, id, params, path})
+                  // publish each API as a POST endpoint
+                  serv.route({
+                    method: api.length ? 'POST' : 'GET',
+                    path,
+                    config,
+                    handler: (req, reply) => {
+                      const payload = req.payload || {}
+                      try {
+                        // supports both synchronous and asynchronous API
+                        Promise.resolve(api(...params.map(prop => payload[prop])))
+                          .then(res => reply(res).header(checksumHeader, checksum))
+                          .catch(err => handleError(id, reply, err))
+                      } catch (exc) {
+                        // bubble any synchronous problem (not returning promise...)
+                        handleError(id, reply, exc)
+                      }
+                    }
+                  })
+                  logger.debug(`API ${path} exposed`)
+                }
+              })
               .then(next)
               .catch(next)
-          }
         }
         plugin.register.attributes = {name: group}
         return plugin
@@ -157,7 +167,6 @@ const registerAsPlugins = (server, opts, logger) => {
     return Promise.reject(err)
   }
 }
-
 
 /**
  * @function startServer
@@ -218,7 +227,6 @@ const registerAsPlugins = (server, opts, logger) => {
  * @returns {Promise} promise   resolved with the **started** Hapi server as parameter
  */
 module.exports = (opts = {}) => {
-
   const options = Object.assign({
     port: 3000,
     logger: getLogger()

@@ -29,11 +29,11 @@ Here is a simple calculator service definition, that exposes functions to add an
 module.exports = {
   name: 'calc-service',
   version: '1.0.0',
-  init: () => Promise.resolve({
-    // each exposed APIs must return a promise
-    add: (a, b) => Promise.resolve(a + b),
-    subtract: (a, b) => Promise.resolve(a - b)
-  })
+  init: () => {
+    // each exposed APIs could also return a promise
+    add: (a, b) => a + b,
+    subtract: (a, b) => a - b
+  }
 }
 ```
 
@@ -151,6 +151,10 @@ module.exports = [{
 ```
 
 ## Changelog
+
+### 3.2.0
+- Support synchronous `init()` and API functions
+- Dependencies update
 
 ### 3.1.0
 - Don't wrap Boom errors to keep http status codes
