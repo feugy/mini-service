@@ -140,17 +140,29 @@ client = {
 
 Local services, as remote services, **must** have `name` and `version` options defined
 
-When defining services, the `name` property was renamed to `group`:
+When loading services, the `services` property was renamed to `groups`, and `serviceOpts` is now `groupOpts`:
+
 ```javascript
-module.exports = [{
-  group: 'calc', // was name previously
-  init: () => Promise.resolve({
-    add: (a, b) => ...,
-    subtract: (a, b) => ...
-  })
+const {startServer} = require('mini-service')
+
+startServer({
+  groups: [ // was services previously
+    require('../serviceA'),
+    require('../serviceB'),
+    require('../serviceC')
+  ],
+  groupOpts: { // was serviceOpts previously
+    serviceA: {},
+    serviceB: {},
+    serviceC: {}
+  }
+})
 ```
 
 ## Changelog
+
+### 3.2.1
+- diabled low-level socket timeout
 
 ### 3.2.0
 - Support synchronous `init()` and API functions
