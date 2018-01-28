@@ -7,7 +7,9 @@
 - [How can service definition be more modular?](#how-can-service-definition-be-more-modular)
 - [How can initialisation be shared by different groups?](#how-can-initialisation-be-shared-by-different-groups)
 - [How could input parameters be validated?](#how-could-input-parameters-be-validated)
+- [How could results be validated](#how-could-results-be-validated)
 - [Is Swagger/OpenAPI supported?](#is-swaggeropenapi-supported)
+- [Can endpoint method/headers/query be configured?](#can-endpoint-methodheadersquery-be-configured)
 
 ## What are deployment modes?
 
@@ -265,7 +267,7 @@ const Joi = require('joi')
 const {startService} = require('mini-service')
 
 startService({
-  name: 'my-service',
+  name: 'validate-inputs',
   version: '1.0.0',
   init: () => {
     // declare your API
@@ -283,11 +285,49 @@ startService({
 Prior to any invokation of the API, incoming parameters will be matched against the validation schema.
 The invokation will fail with a 400 error (Bad Request) if they don't comply.
 
+
+## How could results be validated?
+
+Although less common, returned results can be validated against a [Joi](https://github.com/hapijs/joi/blob/master/API.md) schema by assigning to the expose API:
+- a *validation schemas* to the `responseSchema`.
+- `true` to `validateResponse` property.
+
+Ommitting `validateResponse` property (or setting a falsy value) will disable result validation.
+
+Results that don't match response schema will trigger a 512 `Bad Response` error.
+
+```js
+const Joi = require('joi')
+const {startService} = require('mini-service')
+
+startService({
+  name: 'validate-results',
+  version: '1.0.0',
+  init: () => {
+    // declare your API
+    const add = (a, b) => a + b
+    // adds output documentation & validation
+    add.responseSchema = Joi.number().required()
+    add.validateResponse = true
+    return {add}
+  }
+})
+```
+
+
 ## Is Swagger/OpenAPI supported?
 
 Yes, but is disabled by default. It can only be used through `startService()`.
 
 To enable and customize it, use `openApi` configuration key.
+Documentation can be added:
+- at upper level: `openApi.info.title`, `openApi.info.description`
+- at group level: `openApi.tags[].description` (`tags[].name` has to match group's name)
+- at api level, by attaching to the exposed API:
+  - `description`: general description
+  - `notes`: string or array of implementation notes
+  - `validate`: array of Joi objects to validate incoming parameters (request body)
+  - `responseSchema`: Joi object describing expected response
 
 ```js
 const Joi = require('joi')
@@ -321,9 +361,30 @@ startService({
       Joi.Number().required().description('reference number').example(5),
       Joi.Number().required().description('added to reference').example(2)
     ]
+
+    // document results
+    add.responseSchema = Joi.Number().required().description('number summation').example(7)
     return {add}
   }
 })
 ```
 
 See a more [complete example](https://github.com/feugy/mini-service/tree/master/examples/documented-service).
+
+
+## Can endpoint method/headers/query be configured?
+
+No it cannot.
+
+Mini-service purposely hides details regarding exposed Http endpoints.
+Its goal is not to be another web framework, but acts more as an remote-procedure-call toolkit.
+
+When exposing an API function, the following conventions apply:
+- endpoint path is `/api/${function name}` (case sensitive)
+- endpoint method is `GET` if function has no declared parameters, `POST` otherwise
+- endpoint headers can not be configured
+- endpoint query string can note be configured
+- incoming request payload is always parsed as JSON
+- when `validate` is set, and request payload doesn't comply, a 400 `Bad Request` error is returned with details
+- when `responseSchema` and `validateResponse` are set, and response payload doesn't comply, a 512 `Bad Response` error is returned with details
+- otherwise, endpoint always returns 200, and result (if it exists) is always serialized as JSON

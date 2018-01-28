@@ -200,9 +200,9 @@ describe('service\'s server', () => {
             name: 'John'
           },
           json: true
+        }).then(greetings => {
+          assert(greetings === 'Hello John !')
         })
-      }).then(greetings => {
-        assert(greetings === 'Hello John !')
       })
     )
 
@@ -217,6 +217,7 @@ describe('service\'s server', () => {
       }).then(() => {
         throw new Error('should have failed')
       }, ({error}) => {
+        assert(error.error === 'Bad Request')
         assert(error.message.includes('Incorrect parameters for API greeting'))
         assert(error.message.includes('"name" must be a string'))
         assert(error.statusCode === 400)
@@ -227,13 +228,47 @@ describe('service\'s server', () => {
             name: 10
           },
           json: true
+        }).then(() => {
+          throw new Error('should have failed')
+        }, ({error}) => {
+          assert(error.error === 'Bad Request')
+          assert(error.message.includes('Incorrect parameters for API greeting'))
+          assert(error.message.includes('"name" must be a string'))
+          assert(error.statusCode === 400)
         })
-      }).then(() => {
-        throw new Error('should have failed')
+      })
+    )
+
+    it('should handle response validation', () =>
+      request({
+        method: 'POST',
+        url: `${server.info.uri}/api/sample/greeting`,
+        body: {
+          name: 'boom'
+        },
+        json: true
+      }).then(res => {
+        throw new Error(`should have failed: ${JSON.stringify(res, null, 2)}`)
       }, ({error}) => {
-        assert(error.message.includes('Incorrect parameters for API greeting'))
-        assert(error.message.includes('"name" must be a string'))
-        assert(error.statusCode === 400)
+        assert(error.error === 'Bad Response')
+        assert(error.message.includes('Incorrect response for API greeting'))
+        assert(error.message.includes('"greetingResult" must be a string'))
+        assert(error.statusCode === 512)
+        return request({
+          method: 'POST',
+          url: `${server.info.uri}/api/synchronous/greeting`,
+          body: {
+            name: 'boom'
+          },
+          json: true
+        }).then(res => {
+          throw new Error(`should have failed: ${JSON.stringify(res, null, 2)}`)
+        }, ({error}) => {
+          assert(error.error === 'Bad Response')
+          assert(error.message.includes('Incorrect response for API greeting'))
+          assert(error.message.includes('"greetingResult" must be a string'))
+          assert(error.statusCode === 512)
+        })
       })
     )
 
@@ -248,9 +283,9 @@ describe('service\'s server', () => {
           method: 'GET',
           url: `${server.info.uri}/api/synchronous/getUndefined`,
           json: true
+        }).then(result => {
+          assert(result === undefined)
         })
-      }).then(result => {
-        assert(result === undefined)
       })
     )
 
@@ -295,13 +330,13 @@ describe('service\'s server', () => {
         return request({
           method: 'GET',
           url: `${server.info.uri}/api/synchronous/boomError`
+        }).then(() => {
+          throw new Error('should have failed')
+        }, ({error}) => {
+          const err = JSON.parse(error)
+          assert(err.statusCode === 401)
+          assert(err.message.includes('Custom authorization error'))
         })
-      }).then(() => {
-        throw new Error('should have failed')
-      }, ({error}) => {
-        const err = JSON.parse(error)
-        assert(err.statusCode === 401)
-        assert(err.message.includes('Custom authorization error'))
       })
     )
   })

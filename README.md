@@ -163,6 +163,7 @@ startServer({
 ### 3.3.0
 - expose customizable OpenAPI descriptor (disabled by default)
 - allow default values for API parameters
+- allow documentation and validation of API result (disabled by default)
 
 ### 3.2.1
 - disabled low-level socket timeout

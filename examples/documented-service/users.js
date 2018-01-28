@@ -5,52 +5,55 @@ module.exports = {
   init: () => {
     const cache = {}
 
-    const apis = {
-      list: (rank = 0, size = 10) =>
-        Object.keys(cache)
-          .filter((id, i) => i >= rank && i < rank + size)
-          .map(id => cache[id]),
+    const userSchema = Joi.object().keys({
+      id: Joi.number().required().description('user id'),
+      name: Joi.string().required()
+        .description('user name').example('Mary')
+    }).required().unknown().label('User')
 
-      save: user => {
-        if (!user.id) {
-          user.id = Math.floor(Math.random() * 1000)
-        }
-        cache[user.id] = user
-        return user
-      },
+    const list = (rank = 0, size = 10) =>
+      Object.keys(cache)
+        .filter((id, i) => i >= rank && i < rank + size)
+        .map(id => cache[id])
 
-      remove: id => {
-        cache[id] = undefined
-      }
-    }
-
-    apis.list.validate = [
+    list.description = 'Paginated list of cached users.'
+    list.notes = 'Insertion order is used.'
+    list.validate = [
       Joi.number().min(0).default(0)
         .description('rank of first returned item'),
       Joi.number().min(1).default(10)
         .description('maximal size of returned list')
     ]
-    apis.list.description = 'Paginated list of cached users.'
-    apis.list.notes = 'Insertion order is used.'
+    list.responseSchema = Joi.array().required().items(userSchema)
+      .description('list (may be empty) of users')
 
-    apis.save.validate = [
-      Joi.object().keys({
-        id: Joi.number()
-          .description('user id, generated if not provided'),
-        name: Joi.string().required()
-          .description('user name').example('Mary')
-      }).required().unknown()
-        .label('User').description('saved user. Will update existing user if id already exists')
+    const save = user => {
+      if (!user.id) {
+        user.id = Math.floor(Math.random() * 1000)
+      }
+      cache[user.id] = user
+      return user
+    }
+
+    save.description = 'Adds new or updates existing user in cache, based on id.'
+    save.validate = [
+      userSchema.keys({
+        id: Joi.number().description('user id, generated if not provided')
+      })
     ]
-    apis.save.description = 'Adds new or updates existing user in cache, based on id.'
+    save.responseSchema = userSchema.description('saved user')
 
-    apis.remove.validate = [
+    const remove = id => {
+      cache[id] = undefined
+    }
+
+    remove.description = 'Removes existing user in cache, based on id.'
+    remove.notes = 'Does nothing if id cannot be found.'
+    remove.validate = [
       Joi.number().required()
         .description('removed user id').example(1)
     ]
-    apis.remove.description = 'Removes existing user in cache, based on id.'
-    apis.remove.notes = 'Does nothing if id cannot be found.'
 
-    return apis
+    return {list, save, remove}
   }
 }

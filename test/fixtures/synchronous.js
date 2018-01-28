@@ -9,11 +9,15 @@ const {unauthorized} = require('boom')
 module.exports = (opts = {}) => {
   const apis = {
     /**
-     * Kindly say hello, and demonstrate how to validate input parameters
+     * Kindly say hello, and demonstrate how to validate input parameters and response
      * @param {String} name person to greet
-     * @returns {String} greeting string message
+     * @returns {String} greeting string message, null if name is 'boom'
      */
     greeting (name) {
+      if (name === 'boom') {
+        // will trigger response validation error
+        return null
+      }
       return `Hello ${name}${opts.greetings || ''} !`
     },
 
@@ -27,15 +31,19 @@ module.exports = (opts = {}) => {
 
     /**
      * API that generates a 401 Boom error
-     * @returns {Error} Unauthorized Boom error with custom message
+     * @throws {Error} Unauthorized Boom error with custom message
      */
     boomError () {
-      return unauthorized('Custom authorization error')
+      throw unauthorized('Custom authorization error')
     }
   }
 
   // adds input validation
   apis.greeting.validate = [Joi.string().required()]
+
+  // adds output documentation & validation
+  apis.greeting.responseSchema = Joi.string().required()
+  apis.greeting.validateResponse = true
 
   return apis
 }
