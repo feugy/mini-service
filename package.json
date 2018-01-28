@@ -11,7 +11,7 @@
   },
   "main": "./lib/index",
   "scripts": {
-    "doc": "jsdoc -c jsdoc.json",
+    "doc": "docma -c docma.config.json",
     "watch-doc": "watch \"npm run doc\" ./lib",
     "nsp": "nsp check",
     "lint": "eslint . --fix",
@@ -35,7 +35,7 @@
   "devDependencies": {
     "benchmark": "~2.1.4",
     "coveralls": "~3.0.0",
-    "docdash": "~0.4.0",
+    "docma": "~1.5.3",
     "eslint": "~4.8.0",
     "eslint-config-standard": "~10.2.1",
     "eslint-plugin-import": "~2.7.0",
@@ -43,7 +43,6 @@
     "eslint-plugin-promise": "~3.5.0",
     "eslint-plugin-standard": "~3.0.1",
     "husky": "~0.14.3",
-    "jsdoc": "~3.5.5",
     "lab": "~14.3.1",
     "lab-espower-transformer": "~1.1.0",
     "moment": "~2.18.1",

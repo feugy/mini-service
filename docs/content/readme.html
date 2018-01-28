@@ -1,0 +1,120 @@
+
+<html><head></head><body><h1 id="mini-service">Mini-service</h1>
+<hr />
+<p>Simplistic µService library</p>
+<p><a href="https://npmjs.org/package/mini-service"><img src="https://img.shields.io/npm/v/mini-service.svg" alt="npm package"></a>
+<a href="https://nodesecurity.io/orgs/perso/projects/6bc9b474-6f9e-4db0-a4d3-c3bf5443a63a"><img src="https://nodesecurity.io/orgs/perso/projects/6bc9b474-6f9e-4db0-a4d3-c3bf5443a63a/badge" alt="NSP Status"></a>
+<a href="https://david-dm.org/feugy/mini-service"><img src="https://img.shields.io/david/feugy/mini-service.svg" alt="dependencies"></a>
+<a href="https://travis-ci.org/feugy/mini-service"><img src="https://api.travis-ci.org/feugy/mini-service.svg" alt="build"></a>
+<a href="https://coveralls.io/r/feugy/mini-service?branch=master"><img src="https://img.shields.io/coveralls/feugy/mini-service/master.svg" alt="coverage"></a>
+<a href="https://github.com/feugy/mini-service/blob/master/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License: MIT"></a></p>
+<ul>
+<li><a href="https://feugy.github.io/mini-service/?api">API Reference</a></li>
+<li><a href="https://feugy.github.io/mini-service/?content=faq">Frequently asked questions</a></li>
+<li><a href="https://github.com/feugy/mini-service/tree/master/examples">Examples</a></li>
+</ul>
+<h2 id="introduction">Introduction</h2>
+<p>The goal of mini-service is to give the minimal structure to implement a µService, that can be invoked locally or remotely.</p>
+<p>Its principles are the following:</p>
+<ul>
+<li>very easy to add new service api endpoints</li>
+<li>easy to use client interface, same usage both locally and remotely</li>
+<li>hide deployment details and provide simple-yet-working solution</li>
+<li>promises based (and thus, async/await compatible)</li>
+</ul>
+<p>mini-service uses the latest ES6 features, so it requires node 6+</p>
+<h2 id="example">Example</h2>
+<p>Here is a simple calculator service definition, that exposes functions to add and subtract numbers.</p>
+<p><code>calc-service.js</code></p>
+<pre><code class="lang-javascript">module.exports = {
+  name: 'calc-service',
+  version: '1.0.0',
+  init: () =&gt; {
+    // each exposed APIs could also return a promise/be async
+    add: (a, b) =&gt; a + b,
+    subtract: (a, b) =&gt; a - b
+  }
+}
+</code></pre>
+<p>If you want to use it locally in a different file:
+require the service definition, and create a [mini-client][mini-client-url] with it</p>
+<p><code>caller-local.js</code></p>
+<pre><code class="lang-javascript">const {getClient} = require('mini-service')
+const calcService = require('./calc-service')
+
+const calc = getClient(calcService)
+</code></pre>
+<p>Then, init it (it's an async operation) and invoke any exposed API you need:</p>
+<p><code>caller-local.js</code></p>
+<pre><code class="lang-javascript">await calc.init()
+const sum = await calc.add(10, 5)
+console.log(`Result is: ${sum}`)
+</code></pre>
+<p>Now let's imagine you need to deploy your calculator service in a standalone Http server, and invoke it from a remote server.
+To turn your local service into a real server, expose your service definition with mini-service's <code>startServer()</code>:</p>
+<p><code>calc-service.js</code></p>
+<pre><code class="lang-javascript">const {startServer} = require('mini-service')
+
+module.exports = {...} // same service definition as above
+// starts Http server
+startServer(module.exports)
+</code></pre>
+<p>A server is now listening on port 3000.</p>
+<p>And to use it from a remote caller, creates a mini-client giving the proper url:</p>
+<p><code>caller-remote.js</code></p>
+<pre><code class="lang-javascript">const getClient = require('mini-client') // or: const {getClient} = require('mini-service')
+
+const calc = getClient({
+  remote: 'http://localhost:3000'
+})
+</code></pre>
+<p>Please note that you <strong>don't need to require the service definition anymore</strong>.</p>
+<p>Usage is exactly the same as previously.</p>
+<p><code>caller-remote.js</code></p>
+<pre><code class="lang-javascript">await calc.init() // no-op, can be skipped
+const sum = await calc.add(10, 5)
+console.log(`Result is: ${sum}`)
+</code></pre>
+<h2 id="acknowledgements">Acknowledgements</h2>
+<p>This project was kindly sponsored by <a href="http://nearform.com">nearForm</a>.</p>
+<h2 id="license">License</h2>
+<p>Copyright <a href="https://github.com/feugy">Damien Simonin Feugas</a> and other contributors, licensed under <a href="./LICENSE">MIT</a>.</p>
+<h2 id="2-x-to-3-x-changes">2.x to 3.x changes</h2>
+<p>Groups are now used as sub-objects of mini-client.</p>
+<p>Given a service exposing:</p>
+<ul>
+<li>api <code>ping</code> without group <em>(or if group has same name as overall service)</em></li>
+<li>group <code>a</code> with apis <code>ping</code> &amp; <code>pong</code></li>
+<li>group <code>b</code> with api <code>ping</code></li>
+</ul>
+<p>the final Mini-client will be:</p>
+<pre><code class="lang-javascript">client = {
+  ping(),
+  a: {
+    ping(),
+    pong()
+  },
+  b: {
+    ping()
+  }
+}
+</code></pre>
+<h2 id="1-x-to-2-x-changes">1.x to 2.x changes</h2>
+<p>Local services, as remote services, <strong>must</strong> have <code>name</code> and <code>version</code> options defined</p>
+<p>When loading services, the <code>services</code> property was renamed to <code>groups</code>, and <code>serviceOpts</code> is now <code>groupOpts</code>:</p>
+<pre><code class="lang-javascript">const {startServer} = require('mini-service')
+
+startServer({
+  groups: [ // was services previously
+    require('../serviceA'),
+    require('../serviceB'),
+    require('../serviceC')
+  ],
+  groupOpts: { // was serviceOpts previously
+    serviceA: {},
+    serviceB: {},
+    serviceC: {}
+  }
+})
+</code></pre>
+</body></html>

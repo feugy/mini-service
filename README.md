@@ -1,11 +1,17 @@
 # Mini-service
 
-Simplistic µService skeleton
+Simplistic µService library
 
-[![npm package][npm-image]][npm-url]
-[![dependencies][david-image]][david-url]
-[![build][travis-image]][travis-url]
-[![coverage][coveralls-image]][coveralls-url]
+[![npm package][npm-badge]][npm-url]
+[![NSP Status][nsp-badge]][nsp-url]
+[![dependencies][david-badge]][david-url]
+[![build][travis-badge]][travis-url]
+[![coverage][coveralls-badge]][coveralls-url]
+[![License: MIT][license-badge]][license-url]
+
+- [API Reference][api-reference-url]
+- [Frequently asked questions][faq]
+- [Examples][examples]
 
 ## Introduction
 
@@ -92,15 +98,6 @@ console.log(`Result is: ${sum}`)
 ```
 
 
-## Going further
-
-Please also checkout:
-- [API Reference][api-reference-url]
-- [Frequently asked questions][faq]
-- [Examples][examples]
-
-FAQ covers topics like modularity, aynsc initialization, parameters validation...
-
 ## Acknowledgements
 
 This project was kindly sponsored by [nearForm][nearform].
@@ -158,84 +155,21 @@ startServer({
 })
 ```
 
-## Changelog
-
-### 3.3.0
-- expose customizable OpenAPI descriptor (disabled by default)
-- allow default values for API parameters
-- allow documentation and validation of API result (disabled by default)
-
-### 3.2.1
-- disabled low-level socket timeout
-
-### 3.2.0
-- Support synchronous `init()` and API functions
-- Dependencies update
-
-### 3.1.0
-- Don't wrap Boom errors to keep http status codes
-- Use [standard.js](https://standardjs.com/) lint configuration
-
-### 3.0.0
-- [*Breaking change*] Use mini-client@3.0.0 that uses sub-objects for exposed groups.
-- Returns CRC32 checksum of exposed API during every call, to allow mini-client checking compatibility
-- Dependency update (except Joi 11 that introduced a regression in Hapi)
-
-### 2.1.0
-
-### 2.0.0
-- Externalized client using [mini-client][mini-client-url], to decouple clients and service code
-- [*Breaking change*] Introduce new terminology, with service descriptor and API groups
-- [*Breaking change*] When parsing exposed APIs, expect 'group' property instead of 'name'
-- Allow to declare API without groups
-- Allow to declare API validation in group options
-- [*Breaking change*] Force name+version on local client
-- Better documentation and code examples
-- More understandable error messages
-
-### 1.3.0
-- Add NSP checks, and upgrade vulnerable dependency
-
-### 1.2.2
-- fix parameter detection
-- fix Proxy that is detected as a Thenable object
-
-### 1.2.1
-- fix issue related to parameter name extraction when using arrow functions
-
-### 1.2.0
-- use proxy to delay remotely exposed Apis retrieval to the first effective usage
-- activate Travis CI and coveralls reports
-- update dependencies
-
-### 1.1.3
-- client functions always returns a real promise (request-promise return a mixed stream + promise object that prevent direct usage in Hapi)
-- checks exposed services interface to avoid mistakes
-
-### 1.1.2
-- update dependencies
-- use lab configuration file
-
-### 1.1.1
-- fix bug that prevent to specify version when creating the service
-
-### 1.1.0
-- allows to use general logger object within exposed services
-
-### 1.0.0
-- initial release
-
 [nearform]: http://nearform.com
 [feugy]: https://github.com/feugy
-[david-image]: https://img.shields.io/david/feugy/mini-service.svg
+[david-badge]: https://img.shields.io/david/feugy/mini-service.svg
 [david-url]: https://david-dm.org/feugy/mini-service
-[npm-image]: https://img.shields.io/npm/v/mini-service.svg
+[npm-badge]: https://img.shields.io/npm/v/mini-service.svg
 [npm-url]: https://npmjs.org/package/mini-service
-[travis-image]: https://api.travis-ci.org/feugy/mini-service.svg
+[travis-badge]: https://api.travis-ci.org/feugy/mini-service.svg
 [travis-url]: https://travis-ci.org/feugy/mini-service
-[coveralls-image]: https://img.shields.io/coveralls/feugy/mini-service/master.svg
+[coveralls-badge]: https://img.shields.io/coveralls/feugy/mini-service/master.svg
 [coveralls-url]: https://coveralls.io/r/feugy/mini-service?branch=master
-[api-reference-url]: https://feugy.github.io/mini-service/
-[faq]: https://github.com/feugy/mini-service/tree/master/FAQ.md
-[example]: https://github.com/feugy/mini-service/tree/master/examples
+[api-reference-url]: https://feugy.github.io/mini-service/?api
+[faq]: https://feugy.github.io/mini-service/?content=faq
+[examples]: https://github.com/feugy/mini-service/tree/master/examples
 [mini-client]: https://feugy.github.io/mini-client/
+[license-badge]: https://img.shields.io/badge/License-MIT-green.svg
+[license-url]: https://github.com/feugy/mini-service/blob/master/LICENSE
+[nsp-badge]: https://nodesecurity.io/orgs/perso/projects/6bc9b474-6f9e-4db0-a4d3-c3bf5443a63a/badge
+[nsp-url]: https://nodesecurity.io/orgs/perso/projects/6bc9b474-6f9e-4db0-a4d3-c3bf5443a63a
