@@ -66,7 +66,7 @@
   name: 'calc-service',
   version: '1.0.0',
   init: () => {
-    // each exposed APIs could also return a promise
+    // each exposed APIs could also return a promise/be async
     add: (a, b) => a + b,
     subtract: (a, b) => a - b
   }
@@ -78,31 +78,31 @@ const calcService = require('./calc-service')
 
 const calc = getClient(calcService)</code></pre><p>Then, init it (it's an async operation) and invoke any exposed API you need:</p>
 <p><code>caller-local.js</code></p>
-<pre class="prettyprint source lang-javascript"><code>calc.init().then(() =>
-  calc.add(10, 5).then(sum => console.log(`Result is: ${sum}`))
-)</code></pre><p>Now let's imagine you need to deploy your calculator service in a standalone Http server, and invoke it from a remote server.
+<pre class="prettyprint source lang-javascript"><code>await calc.init()
+const sum = await calc.add(10, 5)
+console.log(`Result is: ${sum}`)</code></pre><p>Now let's imagine you need to deploy your calculator service in a standalone Http server, and invoke it from a remote server.
 To turn your local service into a real server, expose your service definition with mini-service's <code>startServer()</code>:</p>
 <p><code>calc-service.js</code></p>
 <pre class="prettyprint source lang-javascript"><code>const {startServer} = require('mini-service')
 
 module.exports = {...} // same service definition as above
+// starts Http server
 startServer(module.exports)</code></pre><p>A server is now listening on port 3000.</p>
 <p>And to use it from a remote caller, creates a mini-client giving the proper url:</p>
 <p><code>caller-remote.js</code></p>
-<pre class="prettyprint source lang-javascript"><code>const getClient = require('mini-client') // same as: `const {getClient} = require('mini-service')`
+<pre class="prettyprint source lang-javascript"><code>const getClient = require('mini-client') // or: const {getClient} = require('mini-service')
 
 const calc = getClient({
   remote: 'http://localhost:3000'
 })</code></pre><p>Please note that you <strong>don't need to require the service definition anymore</strong>.</p>
 <p>Usage is exactly the same as previously.</p>
 <p><code>caller-remote.js</code></p>
-<pre class="prettyprint source lang-javascript"><code>calc.init().then(() =>
-  calc.add(10, 5).then(sum => console.log(`Result is: ${sum}`))
-)</code></pre><p>Simplistic, but it fits lots of usecases</p>
-<h2>Going further</h2><p>Please also checkout:</p>
+<pre class="prettyprint source lang-javascript"><code>await calc.init() // no-op, can be skipped
+const sum = await calc.add(10, 5)
+console.log(`Result is: ${sum}`)</code></pre><h2>Going further</h2><p>Please also checkout:</p>
 <ul>
 <li><a href="https://feugy.github.io/mini-service/">API Reference</a></li>
-<li><a href="https://minigithub.com/feugy/mini-service/tree/master/FAQ.md">Frequently asked questions</a></li>
+<li><a href="https://github.com/feugy/mini-service/tree/master/FAQ.md">Frequently asked questions</a></li>
 <li>[Examples][examples]</li>
 </ul>
 <p>FAQ covers topics like modularity, aynsc initialization, parameters validation...</p>
@@ -126,13 +126,28 @@ const calc = getClient({
     ping()
   }
 }</code></pre><h2>1.x to 2.x changes</h2><p>Local services, as remote services, <strong>must</strong> have <code>name</code> and <code>version</code> options defined</p>
-<p>When defining services, the <code>name</code> property was renamed to <code>group</code>:</p>
-<pre class="prettyprint source lang-javascript"><code>module.exports = [{
-  group: 'calc', // was name previously
-  init: () => Promise.resolve({
-    add: (a, b) => ...,
-    subtract: (a, b) => ...
-  })</code></pre><h2>Changelog</h2><h3>3.2.0</h3><ul>
+<p>When loading services, the <code>services</code> property was renamed to <code>groups</code>, and <code>serviceOpts</code> is now <code>groupOpts</code>:</p>
+<pre class="prettyprint source lang-javascript"><code>const {startServer} = require('mini-service')
+
+startServer({
+  groups: [ // was services previously
+    require('../serviceA'),
+    require('../serviceB'),
+    require('../serviceC')
+  ],
+  groupOpts: { // was serviceOpts previously
+    serviceA: {},
+    serviceB: {},
+    serviceC: {}
+  }
+})</code></pre><h2>Changelog</h2><h3>3.3.0</h3><ul>
+<li>expose customizable OpenAPI descriptor</li>
+<li>allow default values for API parameters</li>
+</ul>
+<h3>3.2.1</h3><ul>
+<li>disabled low-level socket timeout</li>
+</ul>
+<h3>3.2.0</h3><ul>
 <li>Support synchronous <code>init()</code> and API functions</li>
 <li>Dependencies update</li>
 </ul>

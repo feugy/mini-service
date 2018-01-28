@@ -107,7 +107,7 @@ describe('service\'s server', () => {
     const checksum = crc32(JSON.stringify(exposedApis))
 
     before(() =>
-      startServer({name, version, groups}).then(s => {
+      startServer({name, version, groups, openApi: {}}).then(s => {
         server = s
       })
     )
@@ -128,6 +128,27 @@ describe('service\'s server', () => {
           version,
           apis: exposedApis
         })
+      })
+    )
+
+    it('should expose documentation', () =>
+      request({
+        method: 'GET',
+        url: `${server.info.uri}/documentation`
+      }).then(content => {
+        assert(content.includes('/swaggerui/swagger-ui.js'))
+      })
+    )
+
+    it('should expose openapi descriptor', () =>
+      request({
+        method: 'GET',
+        url: `${server.info.uri}/swagger.json`,
+        json: true
+      }).then(descriptor => {
+        assert(descriptor.swagger === '2.0')
+        assert(descriptor.basePath === '/api')
+        assert.deepStrictEqual(descriptor.info, {title: 'API documentation', version})
       })
     )
 
@@ -201,7 +222,7 @@ describe('service\'s server', () => {
         assert(error.statusCode === 400)
         return request({
           method: 'POST',
-          url: `${server.info.uri}/api/sample/greeting`,
+          url: `${server.info.uri}/api/synchronous/greeting`,
           body: {
             name: 10
           },
@@ -225,7 +246,7 @@ describe('service\'s server', () => {
         assert(result === undefined)
         return request({
           method: 'GET',
-          url: `${server.info.uri}/api/sample/getUndefined`,
+          url: `${server.info.uri}/api/synchronous/getUndefined`,
           json: true
         })
       }).then(result => {
@@ -273,7 +294,7 @@ describe('service\'s server', () => {
         assert(err.message.includes('Custom authorization error'))
         return request({
           method: 'GET',
-          url: `${server.info.uri}/api/sample/boomError`
+          url: `${server.info.uri}/api/synchronous/boomError`
         })
       }).then(() => {
         throw new Error('should have failed')

@@ -1,6 +1,6 @@
 {
   "name": "mini-service",
-  "version": "3.2.1",
+  "version": "3.3.0",
   "description": "Micro services done simply. Choose to run them locally or remotely",
   "author": "feugy <damien.feugas@gmail.com>",
   "license": "MIT",
@@ -24,9 +24,13 @@
     "boom": "~6.0.0",
     "crc32": "~0.2.2",
     "hapi": "~16.6.2",
+    "hapi-swagger": "~7.9.1",
+    "hoek": "~5.0.2",
+    "inert": "~4.2.1",
     "joi": "~11.1.1",
     "mini-client": "~3.2.0",
-    "mini-service-utils": "~2.3.0"
+    "mini-service-utils": "~2.3.0",
+    "vision": "~4.1.1"
   },
   "devDependencies": {
     "benchmark": "~2.1.4",
