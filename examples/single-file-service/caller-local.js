@@ -4,7 +4,11 @@ const calcService = require('./calc-service')
 // local client needs service definition
 const calc = getClient(calcService)
 
-// after a mandatory initialisation, you can call any exposed API
-calc.init().then(() =>
-  calc.add(10, 5).then(sum => console.log(`Result is: ${sum}`))
-)
+// async wrapper, only required in global scope
+async function main () {
+  // after a mandatory initialisation, you can call any exposed API
+  await calc.init()
+  console.log(`Result is: ${await calc.add(10, 5)}`)
+}
+
+main()

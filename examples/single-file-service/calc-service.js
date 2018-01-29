@@ -5,10 +5,9 @@ const {startServer} = require('../../') // require('mini-service')
 module.exports = {
   name: 'calc-service',
   version: '1.0.0',
-  init: () => Promise.resolve({
-    // each exposed APIs must return a promise
-    add: (a, b) => Promise.resolve(a + b),
-    subtract: (a, b) => Promise.resolve(a - b)
+  init: () => ({
+    add: (a, b) => a + b,
+    subtract: (a, b) => a - b
   })
 }
 

@@ -30,7 +30,7 @@ module.exports = {
   name: 'calc-service',
   version: '1.0.0',
   init: () => {
-    // each exposed APIs could also return a promise
+    // each exposed APIs could also return a promise/be async
     add: (a, b) => a + b,
     subtract: (a, b) => a - b
   }
@@ -52,9 +52,9 @@ Then, init it (it's an async operation) and invoke any exposed API you need:
 
 `caller-local.js`
 ```javascript
-calc.init().then(() =>
-  calc.add(10, 5).then(sum => console.log(`Result is: ${sum}`))
-)
+await calc.init()
+const sum = await calc.add(10, 5)
+console.log(`Result is: ${sum}`)
 ```
 
 Now let's imagine you need to deploy your calculator service in a standalone Http server, and invoke it from a remote server.
@@ -65,6 +65,7 @@ To turn your local service into a real server, expose your service definition wi
 const {startServer} = require('mini-service')
 
 module.exports = {...} // same service definition as above
+// starts Http server
 startServer(module.exports)
 ```
 A server is now listening on port 3000.
@@ -73,7 +74,7 @@ And to use it from a remote caller, creates a mini-client giving the proper url:
 
 `caller-remote.js`
 ```javascript
-const getClient = require('mini-client') // same as: `const {getClient} = require('mini-service')`
+const getClient = require('mini-client') // or: const {getClient} = require('mini-service')
 
 const calc = getClient({
   remote: 'http://localhost:3000'
@@ -85,12 +86,10 @@ Usage is exactly the same as previously.
 
 `caller-remote.js`
 ```javascript
-calc.init().then(() =>
-  calc.add(10, 5).then(sum => console.log(`Result is: ${sum}`))
-)
+await calc.init() // no-op, can be skipped
+const sum = await calc.add(10, 5)
+console.log(`Result is: ${sum}`)
 ```
-
-Simplistic, but it fits lots of usecases
 
 
 ## Going further
@@ -161,8 +160,13 @@ startServer({
 
 ## Changelog
 
+### 3.3.0
+- expose customizable OpenAPI descriptor (disabled by default)
+- allow default values for API parameters
+- allow documentation and validation of API result (disabled by default)
+
 ### 3.2.1
-- diabled low-level socket timeout
+- disabled low-level socket timeout
 
 ### 3.2.0
 - Support synchronous `init()` and API functions
@@ -232,6 +236,6 @@ startServer({
 [coveralls-image]: https://img.shields.io/coveralls/feugy/mini-service/master.svg
 [coveralls-url]: https://coveralls.io/r/feugy/mini-service?branch=master
 [api-reference-url]: https://feugy.github.io/mini-service/
-[faq]: https://minigithub.com/feugy/mini-service/tree/master/FAQ.md
+[faq]: https://github.com/feugy/mini-service/tree/master/FAQ.md
 [example]: https://github.com/feugy/mini-service/tree/master/examples
 [mini-client]: https://feugy.github.io/mini-client/
