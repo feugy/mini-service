@@ -21,66 +21,60 @@ describe('service\'s server', () => {
     name: 'synchronous',
     init: require('./fixtures/synchronous')
   }]
-  const init = () => Promise.resolve({})
+  const init = async () => ({})
 
   before(utils.shutdownLogger)
 
   after(utils.restoreLogger)
 
-  afterEach(() => {
-    if (!started) return Promise.resolve()
-    return started.stop()
+  afterEach(async () => {
+    if (!started) return
+    await started.stop()
   })
 
-  it('should start with default port', () =>
-    startServer({name, version, init})
-      .then(server => server.stop())
-  )
+  it('should start with default port', async () => {
+    const server = await startServer({name, version, init})
+    await server.stop()
+  })
 
-  it('should handle configuration error', done => {
+  it('should handle configuration error', () => {
     assert.throws(() => startServer({name, version, init, port: -1}), /"port" must be larger than or equal to 0/)
-    done()
   })
 
-  it('should handle missing name', done => {
+  it('should handle missing name', () => {
     assert.throws(() => startServer({version, init}), /"name" and "version" options/)
-    done()
   })
 
-  it('should handle missing version', done => {
+  it('should handle missing version', () => {
     assert.throws(() => startServer({name, init}), /"name" and "version" options/)
-    done()
   })
 
-  it('should handle wrong validation object', () =>
-    startServer(require('./fixtures/invalid-schema'))
-      .then(() => {
-        throw new Error('should have failed')
-      }, error => {
-        assert(error)
-        assert(error.message.includes('validation schema for API invalidValidator (from group invalid-schema)'))
-        assert(error.message.includes('Invalid schema content'))
-      })
-  )
+  it('should handle wrong validation object', async () => {
+    try {
+      await startServer(require('./fixtures/invalid-schema'))
+    } catch (err) {
+      assert(err instanceof Error)
+      assert(err.message.includes('validation schema for API invalidValidator (from group invalid-schema)'))
+      assert(err.message.includes('Invalid schema content'))
+      return
+    }
+    throw new Error('should have failed')
+  })
 
-  it('should handle start error', () => {
-    let first
+  it('should handle start error', async () => {
+    let err
     // given a started server
-    return startServer({name, version, init})
-      .then(server => {
-        first = server
-      })
-      // when starting another server on the same port
-      .then(() => startServer({name, version, init, port: first.info.port}))
-      .then(second => {
-        first.stop()
-        second.stop()
-        assert.fail('', '', 'server shouldn\'t have start')
-      }, err => {
-        first.stop()
-        assert(err instanceof Error)
-        assert(err.message.indexOf('EADDRINUSE') >= 0)
-      })
+    const first = await startServer({name, version, init})
+    // when starting another server on the same port
+    try {
+      const second = await startServer({name, version, init, port: first.info.port})
+      await second.stop()
+    } catch (threw) {
+      err = threw
+    }
+    await first.stop()
+    assert(err instanceof Error)
+    assert(err.message.indexOf('EADDRINUSE') >= 0)
   })
 
   describe('given a started server', () => {
@@ -106,287 +100,308 @@ describe('service\'s server', () => {
     }]
     const checksum = crc32(JSON.stringify(exposedApis))
 
-    before(() =>
-      startServer({name, version, groups, openApi: {}}).then(s => {
-        server = s
-      })
-    )
-
-    after(done => {
-      server.stop()
-      done()
+    before(async () => {
+      server = await startServer({name, version, groups, openApi: {}})
     })
 
-    it('should list exposed APIs', () =>
-      request({
+    after(async () => server.stop())
+
+    it('should list exposed APIs', async () =>
+      assert.deepEqual(await request({
         method: 'GET',
         url: `${server.info.uri}/api/exposed`,
         json: true
-      }).then(exposed => {
-        assert.deepEqual(exposed, {
-          name,
-          version,
-          apis: exposedApis
-        })
+      }), {
+        name,
+        version,
+        apis: exposedApis
       })
     )
 
-    it('should expose documentation', () =>
-      request({
+    it('should expose documentation', async () =>
+      assert((await request({
         method: 'GET',
         url: `${server.info.uri}/documentation`
-      }).then(content => {
-        assert(content.includes('/swaggerui/swagger-ui.js'))
-      })
+      })).includes('/swaggerui/swagger-ui.js'))
     )
 
-    it('should expose openapi descriptor', () =>
-      request({
+    it('should expose openApi descriptor', async () => {
+      const descriptor = await request({
         method: 'GET',
         url: `${server.info.uri}/swagger.json`,
         json: true
-      }).then(descriptor => {
-        assert(descriptor.swagger === '2.0')
-        assert(descriptor.basePath === '/api')
-        assert.deepStrictEqual(descriptor.info, {title: 'API documentation', version})
       })
-    )
+      assert(descriptor.swagger === '2.0')
+      assert(descriptor.basePath === '/api')
+      assert.deepStrictEqual(descriptor.info, {title: 'API documentation', version})
+    })
 
-    it('should include CRC32 as header', () =>
-      request({
+    it('should include CRC32 as header for API without parameter', async () => {
+      const response = await request({
         method: 'GET',
         url: `${server.info.uri}/api/sample/ping`,
         json: true,
         resolveWithFullResponse: true
-      }).then(response1 => {
-        assert(checksum === response1.headers[checksumHeader])
-        return request({
-          method: 'POST',
-          url: `${server.info.uri}/api/sample/greeting`,
-          body: {
-            name: 'John'
-          },
-          json: true,
-          resolveWithFullResponse: true
-        }).then(response2 => {
-          assert(checksum === response2.headers['x-service-crc'])
-        })
       })
-    )
+      assert(checksum === response.headers[checksumHeader])
+    })
 
-    it('should invoke api without argument', () =>
-      request({
+    it('should include CRC32 as header for API with parameters', async () => {
+      const response = await request({
+        method: 'POST',
+        url: `${server.info.uri}/api/sample/greeting`,
+        body: {
+          name: 'John'
+        },
+        json: true,
+        resolveWithFullResponse: true
+      })
+      assert(checksum === response.headers['x-service-crc'])
+    })
+
+    it('should invoke API without argument', async () =>
+      assert(await request({
         method: 'GET',
         url: `${server.info.uri}/api/sample/ping`
-      }).then(date => {
-        assert(date)
-      })
+      }))
     )
 
-    it('should invoke api with argument', () =>
-      request({
+    it('should invoke async API with argument', async () => {
+      const greetings = await request({
         method: 'POST',
         url: `${server.info.uri}/api/sample/greeting`,
         body: {
           name: 'John'
         },
         json: true
-      }).then(greetings => {
-        assert(greetings === 'Hello John !')
-        return request({
-          method: 'POST',
-          url: `${server.info.uri}/api/synchronous/greeting`,
-          body: {
-            name: 'John'
-          },
-          json: true
-        }).then(greetings => {
-          assert(greetings === 'Hello John !')
-        })
       })
-    )
+      assert(greetings === 'Hello John !')
+    })
 
-    it('should handle argument validation', () =>
-      request({
+    it('should invoke sync API with argument', async () => {
+      const greetings = await request({
         method: 'POST',
-        url: `${server.info.uri}/api/sample/greeting`,
+        url: `${server.info.uri}/api/synchronous/greeting`,
         body: {
-          name: 10
+          name: 'John'
         },
         json: true
-      }).then(() => {
-        throw new Error('should have failed')
-      }, ({error}) => {
-        assert(error.error === 'Bad Request')
+      })
+      assert(greetings === 'Hello John !')
+    })
+
+    it('should handle argument validation for async API', async () => {
+      try {
+        await request({
+          method: 'POST',
+          url: `${server.info.uri}/api/sample/greeting`,
+          body: {
+            name: 10
+          },
+          json: true
+        })
+      } catch ({error}) {
         assert(error.message.includes('Incorrect parameters for API greeting'))
         assert(error.message.includes('"name" must be a string'))
+        assert(error.error === 'Bad Request')
         assert(error.statusCode === 400)
-        return request({
+        return
+      }
+      throw new Error('should have failed')
+    })
+
+    it('should handle argument validation for async API', async () => {
+      try {
+        await request({
           method: 'POST',
           url: `${server.info.uri}/api/synchronous/greeting`,
           body: {
             name: 10
           },
           json: true
-        }).then(() => {
-          throw new Error('should have failed')
-        }, ({error}) => {
-          assert(error.error === 'Bad Request')
-          assert(error.message.includes('Incorrect parameters for API greeting'))
-          assert(error.message.includes('"name" must be a string'))
-          assert(error.statusCode === 400)
         })
-      })
-    )
+      } catch ({error}) {
+        assert(error.message.includes('Incorrect parameters for API greeting'))
+        assert(error.message.includes('"name" must be a string'))
+        assert(error.error === 'Bad Request')
+        assert(error.statusCode === 400)
+        return
+      }
+      throw new Error('should have failed')
+    })
 
-    it('should handle response validation', () =>
-      request({
-        method: 'POST',
-        url: `${server.info.uri}/api/sample/greeting`,
-        body: {
-          name: 'boom'
-        },
-        json: true
-      }).then(res => {
-        throw new Error(`should have failed: ${JSON.stringify(res, null, 2)}`)
-      }, ({error}) => {
-        assert(error.error === 'Bad Response')
+    it('should handle response validation for async API', async () => {
+      let res
+      try {
+        res = await request({
+          method: 'POST',
+          url: `${server.info.uri}/api/sample/greeting`,
+          body: {
+            name: 'boom'
+          },
+          json: true
+        })
+      } catch ({error}) {
         assert(error.message.includes('Incorrect response for API greeting'))
         assert(error.message.includes('"greetingResult" must be a string'))
+        assert(error.error === 'Bad Response')
         assert(error.statusCode === 512)
-        return request({
+        return
+      }
+      throw new Error(`unexpected result: ${JSON.stringify(res, null, 2)}`)
+    })
+
+    it('should handle response validation for sync API', async () => {
+      let res
+      try {
+        res = await request({
           method: 'POST',
           url: `${server.info.uri}/api/synchronous/greeting`,
           body: {
             name: 'boom'
           },
           json: true
-        }).then(res => {
-          throw new Error(`should have failed: ${JSON.stringify(res, null, 2)}`)
-        }, ({error}) => {
-          assert(error.error === 'Bad Response')
-          assert(error.message.includes('Incorrect response for API greeting'))
-          assert(error.message.includes('"greetingResult" must be a string'))
-          assert(error.statusCode === 512)
         })
-      })
-    )
+      } catch ({error}) {
+        assert(error.error === 'Bad Response')
+        assert(error.message.includes('Incorrect response for API greeting'))
+        assert(error.message.includes('"greetingResult" must be a string'))
+        assert(error.statusCode === 512)
+        return
+      }
+      throw new Error(`unexpected result: ${JSON.stringify(res, null, 2)}`)
+    })
 
-    it('should handle undefined results', () =>
-      request({
+    it('should handle undefined results from async API', async () => {
+      const result = await request({
         method: 'GET',
         url: `${server.info.uri}/api/sample/getUndefined`,
         json: true
-      }).then(result => {
-        assert(result === undefined)
-        return request({
+      })
+      assert(result === undefined)
+    })
+
+    it('should handle undefined results from sync API', async () => {
+      const result = await request({
+        method: 'GET',
+        url: `${server.info.uri}/api/synchronous/getUndefined`,
+        json: true
+      })
+      assert(result === undefined)
+    })
+
+    it('should handle API asynchronous failure', async () => {
+      try {
+        await request({
           method: 'GET',
-          url: `${server.info.uri}/api/synchronous/getUndefined`,
+          url: `${server.info.uri}/api/sample/failing`,
           json: true
-        }).then(result => {
-          assert(result === undefined)
         })
-      })
-    )
+      } catch ({error}) {
+        assert(error.statusCode === 599)
+        assert(error.message.includes('Error while calling API failing'))
+        assert(error.message.includes('something went really bad'))
+        return
+      }
+      throw new Error('should have failed')
+    })
 
-    it('should handle api asynchronous failure', () =>
-      request({
-        method: 'GET',
-        url: `${server.info.uri}/api/sample/failing`
-      }).then(() => {
-        throw new Error('should have failed')
-      }, ({error}) => {
-        const err = JSON.parse(error)
-        assert(err.statusCode === 599)
-        assert(err.message.includes('Error while calling API failing'))
-        assert(err.message.includes('something went really bad'))
-      })
-    )
-
-    it('should handle api synchronous failure', () =>
-      request({
-        method: 'GET',
-        url: `${server.info.uri}/api/sample/errored`
-      }).then(() => {
-        throw new Error('should have failed')
-      }, ({error}) => {
-        const err = JSON.parse(error)
-        assert(err.statusCode === 599)
-        assert(err.message.includes('Error while calling API errored'))
-        assert(err.message.includes('errored API'))
-      })
-    )
-
-    it('should propagate Boom errors', () =>
-      request({
-        method: 'GET',
-        url: `${server.info.uri}/api/sample/boomError`
-      }).then(() => {
-        throw new Error('should have failed')
-      }, ({error}) => {
-        const err = JSON.parse(error)
-        assert(err.statusCode === 401)
-        assert(err.message.includes('Custom authorization error'))
-        return request({
+    it('should handle API synchronous failure', async () => {
+      try {
+        await request({
           method: 'GET',
-          url: `${server.info.uri}/api/synchronous/boomError`
-        }).then(() => {
-          throw new Error('should have failed')
-        }, ({error}) => {
-          const err = JSON.parse(error)
-          assert(err.statusCode === 401)
-          assert(err.message.includes('Custom authorization error'))
+          url: `${server.info.uri}/api/sample/errored`,
+          json: true
         })
-      })
-    )
+      } catch ({error}) {
+        assert(error.statusCode === 599)
+        assert(error.message.includes('Error while calling API errored'))
+        assert(error.message.includes('errored API'))
+        return
+      }
+      throw new Error('should have failed')
+    })
+
+    it('should propagate Boom errors from async API', async () => {
+      try {
+        await request({
+          method: 'GET',
+          url: `${server.info.uri}/api/sample/boomError`,
+          json: true
+        })
+      } catch ({error}) {
+        assert(error.statusCode === 401)
+        assert(error.message.includes('Custom authorization error'))
+        return
+      }
+      throw new Error('should have failed')
+    })
+
+    it('should propagate Boom errors from sync API', async () => {
+      try {
+        await request({
+          method: 'GET',
+          url: `${server.info.uri}/api/synchronous/boomError`,
+          json: true
+        })
+      } catch ({error}) {
+        assert(error.statusCode === 401)
+        assert(error.message.includes('Custom authorization error'))
+        return
+      }
+      throw new Error('should have failed')
+    })
   })
 
   describe('server with an ordered list of groups', () => {
+    let server
     const initOrder = []
     const ordered = Array.from({length: 3}).map((v, i) => ({
       name: `group-${i}`,
-      init: opts => new Promise((resolve, reject) => {
-        if (opts.fail) return reject(new Error(`group ${i} failed to initialize`))
+      init: async opts => {
+        if (opts.fail) throw new Error(`group ${i} failed to initialize`)
         initOrder.push(i)
         opts.logger.warn(`from group ${i}`)
-        return resolve()
-      })
+      }
     }))
 
-    beforeEach(done => {
+    beforeEach(() => {
+      server = null
       initOrder.splice(0, initOrder.length)
-      done()
     })
 
-    it('should keep order when registering locally', () =>
-      startServer({name, version, groups: ordered})
-        .then(server => {
-          server.stop()
-          assert.deepEqual(initOrder, [0, 1, 2])
-        })
-    )
+    afterEach(async () => {
+      if (server) {
+        await server.stop()
+      }
+    })
 
-    it('should stop initialisation at first error', () =>
-      startServer({
-        name,
-        version,
-        groups: ordered,
-        groupOpts: {
-          'group-1': {fail: true}
-        }
-      })
-        .then(server => {
-          server.stop()
-          assert.fail('', '', 'server shouln\'t have start')
-        }, err => {
-          assert(err instanceof Error)
-          assert(err.message.includes('group 1 failed to initialize'))
-          assert.deepEqual(initOrder, [0])
-        })
-    )
+    it('should keep order when registering locally', async () => {
+      server = await startServer({name, version, groups: ordered})
+      assert.deepEqual(initOrder, [0, 1, 2])
+    })
 
-    it('should ignore groups that doesn\'t expose an object', () =>
-      startServer({
+    it('should stop initialisation at first error', async () => {
+      try {
+        server = await startServer({
+          name,
+          version,
+          groups: ordered,
+          groupOpts: {
+            'group-1': {fail: true}
+          }
+        })
+      } catch (err) {
+        assert(err instanceof Error)
+        assert(err.message.includes('group 1 failed to initialize'))
+        assert.deepEqual(initOrder, [0])
+        return
+      }
+      throw new Error('should have failed')
+    })
+
+    it('should ignore groups that doesn\'t expose an object', async () => {
+      server = await startServer({
         name,
         version,
         groups: [{
@@ -402,69 +417,65 @@ describe('service\'s server', () => {
           name: 'init-empty',
           init: () => Promise.resolve(null)
         }].concat(ordered)
-      }).then(server => {
-        server.stop()
       })
-    )
+    })
 
-    it('should enforce group name', () =>
-      startServer({
-        name,
-        version,
-        groups: [{
-          init: () => Promise.resolve('initialized')
-        }]
-      }).then(server => {
-        server.stop()
-        throw new Error('should have failed')
-      }, err => {
-        assert.ok(err instanceof Error)
+    it('should enforce group name', async () => {
+      try {
+        server = await startServer({
+          name,
+          version,
+          groups: [{
+            init: () => Promise.resolve('initialized')
+          }]
+        })
+      } catch (err) {
+        assert(err instanceof Error)
         assert(err.message.indexOf('"name" is required') !== -1)
-      })
-    )
+        return
+      }
+      throw new Error('should have failed')
+    })
 
-    it('should enforce group init function', () =>
-      startServer({
-        name,
-        version,
-        groups: [{
-          name: 'test'
-        }]
-      }).then(server => {
-        server.stop()
-        throw new Error('should have failed')
-      }, err => {
-        assert.ok(err instanceof Error)
+    it('should enforce group init function', async () => {
+      try {
+        server = await startServer({
+          name,
+          version,
+          groups: [{
+            name: 'test'
+          }]
+        })
+      } catch (err) {
+        assert(err instanceof Error)
         assert(err.message.includes('"init" is required'))
-      })
-    )
+        return
+      }
+      throw new Error('should have failed')
+    })
 
-    it('should manage init function not returning Promise', () =>
-      startServer({
+    it('should manage init function not returning Promise', async () => {
+      server = await startServer({
         name,
         version,
         groups: [{
           name: 'test',
           init: () => ({test: () => 'test'})
         }]
-      }).then(server => {
-        server.stop()
       })
-    )
+    })
 
-    it('should expose logger to groups', () => {
+    it('should expose logger to groups', async () => {
       const logs = []
       const logger = bunyan.createLogger({name: 'test'})
       logger.warn = msg => logs.push(msg)
-      return startServer({
+      server = await startServer({
         name,
         version,
         logger,
         groups: ordered
-      }).then(server => {
-        server.stop()
-        assert.deepEqual(logs, ['from group 0', 'from group 1', 'from group 2'])
       })
+      assert.deepEqual(logs, ['from group 0', 'from group 1', 'from group 2'])
     })
   })
 })

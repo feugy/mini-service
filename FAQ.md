@@ -1,15 +1,15 @@
 # Frequently Asked Questions
 
-- [What are deployment modes?](#what-are-deployment-modes)
-- [Can exposed API be asynchronous?](#can-exposed-api-be-asynchronous)
-- [Where to put asynchronous initialization?](#where-to-put-asynchronous-initialization)
-- [Can initialization code be configured?](#can-initialization-code-be-configured)
-- [How can service definition be more modular?](#how-can-service-definition-be-more-modular)
-- [How can initialisation be shared by different groups?](#how-can-initialisation-be-shared-by-different-groups)
-- [How could input parameters be validated?](#how-could-input-parameters-be-validated)
-- [How could results be validated](#how-could-results-be-validated)
-- [Is Swagger/OpenAPI supported?](#is-swaggeropenapi-supported)
-- [Can endpoint method/headers/query be configured?](#can-endpoint-methodheadersquery-be-configured)
+- [What are deployment modes?](#what-are-deployment-modes-)
+- [Can exposed API be asynchronous?](#can-exposed-api-be-asynchronous-)
+- [Where to put asynchronous initialization?](#where-to-put-asynchronous-initialization-)
+- [Can initialization code be configured?](#can-initialization-code-be-configured-)
+- [How can service definition be more modular?](#how-can-service-definition-be-more-modular-)
+- [How can initialisation be shared by different groups?](#how-can-initialisation-be-shared-by-different-groups-)
+- [How could input parameters be validated?](#how-could-input-parameters-be-validated-)
+- [How could results be validated](#how-could-results-be-validated-)
+- [Is Swagger/OpenAPI supported?](#is-swagger-openapi-supported-)
+- [Can endpoint method/headers/query be configured?](#can-endpoint-method-headers-query-be-configured-)
 
 ## What are deployment modes?
 
@@ -83,7 +83,7 @@ startService({
 ```
 
 
-## Where to put asynchronous initialization? (connect to DB, open files...)
+## Where to put asynchronous initialization?
 
 To serve this purpose, the `init()` function can be either synchronous or return a Promise.
 

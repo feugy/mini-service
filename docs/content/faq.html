@@ -1,0 +1,333 @@
+
+<html><head></head><body><h1 id="frequently-asked-questions">Frequently Asked Questions</h1>
+<hr />
+<ul>
+<li><a href="#what-are-deployment-modes-">What are deployment modes?</a></li>
+<li><a href="#can-exposed-api-be-asynchronous-">Can exposed API be asynchronous?</a></li>
+<li><a href="#where-to-put-asynchronous-initialization-">Where to put asynchronous initialization?</a></li>
+<li><a href="#can-initialization-code-be-configured-">Can initialization code be configured?</a></li>
+<li><a href="#how-can-service-definition-be-more-modular-">How can service definition be more modular?</a></li>
+<li><a href="#how-can-initialisation-be-shared-by-different-groups-">How can initialisation be shared by different groups?</a></li>
+<li><a href="#how-could-input-parameters-be-validated-">How could input parameters be validated?</a></li>
+<li><a href="#how-could-results-be-validated-">How could results be validated</a></li>
+<li><a href="#is-swagger-openapi-supported-">Is Swagger/OpenAPI supported?</a></li>
+<li><a href="#can-endpoint-method-headers-query-be-configured-">Can endpoint method/headers/query be configured?</a></li>
+</ul>
+<h2 id="what-are-deployment-modes-">What are deployment modes?</h2>
+<p>µServices based on mini-service could be deployed either:</p>
+<ul>
+<li><p>locally: runs on the same nodejs process as the caller code</p>
+<pre><code class="lang-js">const {getClient} = require('mini-service')
+
+// define a service
+const calc = getClient({
+  name: 'calc',
+  version: '1.0.0',
+  init: () =&gt; ({
+    add: (a, b) =&gt; a + b
+  })
+})
+
+await calc.init()
+
+// invoke exposed api as async function
+const sum = await calc.add(10 + 5)
+</code></pre>
+</li>
+<li><p>remotely: runs as a dedicated HTTP server</p>
+<pre><code class="lang-js">// server.js
+const {startServer} = require('mini-service')
+
+// define a service, start Http server
+startServer({
+  name: 'calc',
+  version: '1.0.0',
+  init: () =&gt; ({
+    add: (a, b) =&gt; a + b
+  })
+})
+</code></pre>
+<pre><code class="lang-js">// client.js
+const {getClient} = require('mini-service')
+
+// will connect to server on demand
+const calc = getClient({
+  remote: 'http://localhost:3000'
+})
+
+// invoke exposed api as async function
+const sum = await calc.add(10 + 5)
+</code></pre>
+</li>
+</ul>
+<p>No need to add the service code as a dependency when using <code>getClient()</code> with remote url/</p>
+<h2 id="can-exposed-api-be-asynchronous-">Can exposed API be asynchronous?</h2>
+<p>Yes, by using Promises:</p>
+<pre><code class="lang-js">const {startService} = require('mini-service')
+
+startService({
+  name: 'calc',
+  version: '1.0.0',
+  init: () =&gt; ({
+    add: (a, b) =&gt; a + b,                    // synchronous API,
+    subtract: async (a, b) =&gt; a - b          // asynchronous API, async/await syntax
+    divide: (a, b) =&gt; Promise.resolve(a / b) // asynchronous API, promise-based
+  })
+})
+</code></pre>
+<h2 id="where-to-put-asynchronous-initialization-">Where to put asynchronous initialization?</h2>
+<p>To serve this purpose, the <code>init()</code> function can be either synchronous or return a Promise.</p>
+<pre><code class="lang-js">const {promisify} = require('util')
+const readFile = promisify(require('readFile').readFile)
+const {startService} = require('mini-service')
+
+startService({
+  name: 'async-init',
+  version: '1.0.0',
+  init: async () =&gt; {
+    // let's say we need to read a configuration file...
+    const content = await readFile('whatever.html')
+    return {
+      // exposed API list
+    }
+  }
+})
+</code></pre>
+<p>Rejecting the <code>init()</code> promise will prevent server to start.</p>
+<h2 id="can-initialization-code-be-configured-">Can initialization code be configured?</h2>
+<p><code>init()</code> functions are invoked with a single Object parameter, populated with values from the service descriptor.</p>
+<pre><code class="lang-js">const {promisify} = require('util')
+const readFile = promisify(require('readFile').readFile)
+const {startService} = require('mini-service')
+
+const config = {
+  filePath: 'whatever.html'
+}
+
+startService({
+  name: 'configurable-init'
+  version: '1.0.0',
+  // single parameter is the service definition itself
+  init: async ({filePath}) =&gt; {
+    const content = await readFile(filePath)
+    return {
+      // exposed API list
+    }
+  },
+  // all keys in the service definition will be passed to init()
+  ...config
+})
+</code></pre>
+<p>If you use <a href="#how-can-service-definition-be-more-modular">API groups</a>, each group has its own configuration object stored in <code>groupOpts[group.name]</code>.</p>
+<h2 id="how-can-service-definition-be-more-modular-">How can service definition be more modular?</h2>
+<p>Service definition object tend to grow quickly.
+API groups is how mini-service makes the code more modular.</p>
+<p>This big service definition:</p>
+<pre><code class="lang-js">const {startService} = require('mini-service')
+
+startService({
+  name: 'monolitic-service',
+  version: '1.0.0',
+  init: () =&gt; ({
+    api1: () =&gt; {/* ... */},
+    api2: () =&gt; {/* ... */},
+    api3: () =&gt; {/* ... */},
+    api4: () =&gt; {/* ... */},
+    api5: () =&gt; {/* ... */}
+  })
+})
+</code></pre>
+<p>can be turned to different groups:</p>
+<pre><code class="lang-js">// server.js
+const {startService} = require('mini-service')
+
+startService({
+  name: 'modular-service',
+  version: '1.0.0',
+  groups: [
+    require('./api/group1'),
+    require('./api/group2')
+  ],
+  groupOpts: {
+    group1: {/* for group 'group1' */},
+    group2: {/* for group 'group2' */}
+  }
+})
+</code></pre>
+<pre><code class="lang-js">// api/group1.js
+module.exports = {
+  // must be a valid JS identifier
+  name: 'group1',
+  // opts comes from groupOpts[group1]
+  init: opts =&gt; ({
+    api1: () =&gt; {/* ... */},
+    api2: () =&gt; {/* ... */}
+  })
+}
+</code></pre>
+<pre><code class="lang-js">// api/group2.js
+module.exports = {
+  name: 'group2',
+  // opts comes from groupOpts[group2]
+  init: opts =&gt; ({
+    api3: () =&gt; {/* ... */},
+    api4: () =&gt; {/* ... */},
+    api5: () =&gt; {/* ... */}
+  })
+}
+</code></pre>
+<p>Please note that groups are initialized <strong>sequentially</strong>, following the declaration order.</p>
+<h2 id="how-can-initialisation-be-shared-by-different-groups-">How can initialisation be shared by different groups?</h2>
+<p>Services are initialized sequentially.
+One can use orderring to perform shared initialization.</p>
+<pre><code class="lang-js">// server.js
+const {startService} = require('mini-service')
+
+let shared
+
+startService({
+  name: 'modular-configurable-service',
+  version: '1.0.0',
+  groups: [{
+    name: 'global-init',
+    init: obj =&gt; {
+      // initialized shared items
+      shared = { /* ... */ }
+      // doesn't have to expose any API
+    }
+  }, {
+    name: 'group1',
+    // pass your shared object to your init method, as well as other options
+    init: opts =&gt; require('./api/group1')(shared, opts)
+  ],
+  groupOpts: {
+    shared: {/* for group 'shared' */}
+    group1: {/* for group 'group1' */}
+  }
+})
+</code></pre>
+<pre><code class="lang-js">// api/group1.js
+module.exports = (shared, opts) {
+  // initialization code, can use shared items
+  return {/* exposed APIs */}
+}
+</code></pre>
+<h2 id="how-could-input-parameters-be-validated-">How could input parameters be validated?</h2>
+<p>As parameters validation is a common pattern (syntactic validation), mini-service supports it out of the box.
+Parameters of exposed API could be validated with <a href="https://github.com/hapijs/joi/blob/master/API.md">Joi</a>.</p>
+<p>Assign an array of <em>validation schemas</em> to the <code>validate</code> property of an exposed API.
+Each schema will validated a given parameter (order matters).</p>
+<pre><code class="lang-js">const Joi = require('joi')
+const {startService} = require('mini-service')
+
+startService({
+  name: 'validate-inputs',
+  version: '1.0.0',
+  init: () =&gt; {
+    // declare your API
+    const add = (a, b) =&gt; a + b
+    // attached a schema for each parameter in an array
+    add.validate = [
+      Joi.Number().required(), // a
+      Joi.Number().required() // b, example used in Swagger documentation
+    ]
+    return {add}
+  }
+})
+</code></pre>
+<p>Prior to any invokation of the API, incoming parameters will be matched against the validation schema.
+The invokation will fail with a 400 error (Bad Request) if they don't comply.</p>
+<h2 id="how-could-results-be-validated-">How could results be validated?</h2>
+<p>Although less common, returned results can be validated against a <a href="https://github.com/hapijs/joi/blob/master/API.md">Joi</a> schema by assigning to the expose API:</p>
+<ul>
+<li>a <em>validation schemas</em> to the <code>responseSchema</code>.</li>
+<li><code>true</code> to <code>validateResponse</code> property.</li>
+</ul>
+<p>Ommitting <code>validateResponse</code> property (or setting a falsy value) will disable result validation.</p>
+<p>Results that don't match response schema will trigger a 512 <code>Bad Response</code> error.</p>
+<pre><code class="lang-js">const Joi = require('joi')
+const {startService} = require('mini-service')
+
+startService({
+  name: 'validate-results',
+  version: '1.0.0',
+  init: () =&gt; {
+    // declare your API
+    const add = (a, b) =&gt; a + b
+    // adds output documentation &amp; validation
+    add.responseSchema = Joi.number().required()
+    add.validateResponse = true
+    return {add}
+  }
+})
+</code></pre>
+<h2 id="is-swagger-openapi-supported-">Is Swagger/OpenAPI supported?</h2>
+<p>Yes, but is disabled by default. It can only be used through <code>startService()</code>.</p>
+<p>To enable and customize it, use <code>openApi</code> configuration key.
+Documentation can be added:</p>
+<ul>
+<li>at upper level: <code>openApi.info.title</code>, <code>openApi.info.description</code></li>
+<li>at group level: <code>openApi.tags[].description</code> (<code>tags[].name</code> has to match group's name)</li>
+<li>at api level, by attaching to the exposed API:<ul>
+<li><code>description</code>: general description</li>
+<li><code>notes</code>: string or array of implementation notes</li>
+<li><code>validate</code>: array of Joi objects to validate incoming parameters (request body)</li>
+<li><code>responseSchema</code>: Joi object describing expected response</li>
+</ul>
+</li>
+</ul>
+<pre><code class="lang-js">const Joi = require('joi')
+const {startService} = require('mini-service')
+
+startService({
+  name: 'documented-service',
+  version: '1.0.0',
+  openApi: {
+    // see https://github.com/glennjones/hapi-swagger/blob/master/optionsreference.md
+    info: {
+      title: 'Simple calculator'
+    }
+    /* defaults are:
+    info: {version},
+    documentationPath: '/documentation',
+    jsonPath: '/swagger.json',
+    basePath: '/api',
+    pathPrefixSize: 2
+    */
+  }
+  init: () =&gt; {
+    const add = (a, b) =&gt; a + b
+
+    // document api
+    add.description = 'Sum numbers'
+    add.notes = 'Only works with two numbers'
+
+    // document parameters
+    add.validate = [
+      Joi.Number().required().description('reference number').example(5),
+      Joi.Number().required().description('added to reference').example(2)
+    ]
+
+    // document results
+    add.responseSchema = Joi.Number().required().description('number summation').example(7)
+    return {add}
+  }
+})
+</code></pre>
+<p>See a more <a href="https://github.com/feugy/mini-service/tree/master/examples/documented-service">complete example</a>.</p>
+<h2 id="can-endpoint-method-headers-query-be-configured-">Can endpoint method/headers/query be configured?</h2>
+<p>No it cannot.</p>
+<p>Mini-service purposely hides details regarding exposed Http endpoints.
+Its goal is not to be another web framework, but acts more as an remote-procedure-call toolkit.</p>
+<p>When exposing an API function, the following conventions apply:</p>
+<ul>
+<li>endpoint path is <code>/api/${function name}</code> (case sensitive)</li>
+<li>endpoint method is <code>GET</code> if function has no declared parameters, <code>POST</code> otherwise</li>
+<li>endpoint headers can not be configured</li>
+<li>endpoint query string can note be configured</li>
+<li>incoming request payload is always parsed as JSON</li>
+<li>when <code>validate</code> is set, and request payload doesn't comply, a 400 <code>Bad Request</code> error is returned with details</li>
+<li>when <code>responseSchema</code> and <code>validateResponse</code> are set, and response payload doesn't comply, a 512 <code>Bad Response</code> error is returned with details</li>
+<li>otherwise, endpoint always returns 200, and result (if it exists) is always serialized as JSON</li>
+</ul>
+</body></html>
