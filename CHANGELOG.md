@@ -1,6 +1,8 @@
 
 # Changelog
 
+- dependencies update
+
 ## 3.3.0
 - expose customizable OpenAPI descriptor (disabled by default)
 - allow default values for API parameters
