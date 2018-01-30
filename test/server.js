@@ -37,16 +37,37 @@ describe('service\'s server', () => {
     await server.stop()
   })
 
-  it('should handle configuration error', () => {
-    assert.throws(() => startServer({name, version, init, port: -1}), /"port" must be larger than or equal to 0/)
+  it('should handle configuration error', async () => {
+    try {
+      await startServer({name, version, init, port: -1})
+    } catch (err) {
+      assert(err instanceof Error)
+      assert(err.message.includes('"port" must be larger than or equal to 0'))
+      return
+    }
+    throw new Error('should have failed')
   })
 
-  it('should handle missing name', () => {
-    assert.throws(() => startServer({version, init}), /"name" and "version" options/)
+  it('should handle missing name', async () => {
+    try {
+      await startServer({version, init})
+    } catch (err) {
+      assert(err instanceof Error)
+      assert(err.message.includes('"name" and "version" options'))
+      return
+    }
+    throw new Error('should have failed')
   })
 
-  it('should handle missing version', () => {
-    assert.throws(() => startServer({name, init}), /"name" and "version" options/)
+  it('should handle missing version', async () => {
+    try {
+      await startServer({name, init})
+    } catch (err) {
+      assert(err instanceof Error)
+      assert(err.message.includes('"name" and "version" options'))
+      return
+    }
+    throw new Error('should have failed')
   })
 
   it('should handle wrong validation object', async () => {

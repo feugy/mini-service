@@ -26,7 +26,7 @@
 <h2 id="example">Example</h2>
 <p>Here is a simple calculator service definition, that exposes functions to add and subtract numbers.</p>
 <p><code>calc-service.js</code></p>
-<pre><code class="lang-javascript">module.exports = {
+<pre><code class="lang-js">module.exports = {
   name: 'calc-service',
   version: '1.0.0',
   init: () =&gt; {
@@ -39,21 +39,21 @@
 <p>If you want to use it locally in a different file:
 require the service definition, and create a [mini-client][mini-client-url] with it</p>
 <p><code>caller-local.js</code></p>
-<pre><code class="lang-javascript">const {getClient} = require('mini-service')
+<pre><code class="lang-js">const {getClient} = require('mini-service')
 const calcService = require('./calc-service')
 
 const calc = getClient(calcService)
 </code></pre>
 <p>Then, init it (it's an async operation) and invoke any exposed API you need:</p>
 <p><code>caller-local.js</code></p>
-<pre><code class="lang-javascript">await calc.init()
+<pre><code class="lang-js">await calc.init()
 const sum = await calc.add(10, 5)
 console.log(`Result is: ${sum}`)
 </code></pre>
 <p>Now let's imagine you need to deploy your calculator service in a standalone Http server, and invoke it from a remote server.
 To turn your local service into a real server, expose your service definition with mini-service's <code>startServer()</code>:</p>
 <p><code>calc-service.js</code></p>
-<pre><code class="lang-javascript">const {startServer} = require('mini-service')
+<pre><code class="lang-js">const {startServer} = require('mini-service')
 
 module.exports = {...} // same service definition as above
 // starts Http server
@@ -62,7 +62,7 @@ startServer(module.exports)
 <p>A server is now listening on port 3000.</p>
 <p>And to use it from a remote caller, creates a mini-client giving the proper url:</p>
 <p><code>caller-remote.js</code></p>
-<pre><code class="lang-javascript">const getClient = require('mini-client') // or: const {getClient} = require('mini-service')
+<pre><code class="lang-js">const getClient = require('mini-client') // or: const {getClient} = require('mini-service')
 
 const calc = getClient({
   remote: 'http://localhost:3000'
@@ -71,7 +71,7 @@ const calc = getClient({
 <p>Please note that you <strong>don't need to require the service definition anymore</strong>.</p>
 <p>Usage is exactly the same as previously.</p>
 <p><code>caller-remote.js</code></p>
-<pre><code class="lang-javascript">await calc.init() // no-op, can be skipped
+<pre><code class="lang-js">await calc.init() // no-op, can be skipped
 const sum = await calc.add(10, 5)
 console.log(`Result is: ${sum}`)
 </code></pre>
@@ -79,7 +79,14 @@ console.log(`Result is: ${sum}`)
 <p>This project was kindly sponsored by <a href="http://nearform.com">nearForm</a>.</p>
 <h2 id="license">License</h2>
 <p>Copyright <a href="https://github.com/feugy">Damien Simonin Feugas</a> and other contributors, licensed under <a href="./LICENSE">MIT</a>.</p>
-<h2 id="2-x-to-3-x-changes">2.x to 3.x changes</h2>
+<h2 id="3-x-to-4-x-migration">3.x to 4.x migration</h2>
+<p>Version 4 is using async/await, which requires node@8+.</p>
+<p>The only breaking change is on <code>startServer()</code>:</p>
+<ul>
+<li>previously it threw synrchonous errors while validating configuration.</li>
+<li>now all errors are thrown asynchronously</li>
+</ul>
+<h2 id="2-x-to-3-x-migration">2.x to 3.x migration</h2>
 <p>Groups are now used as sub-objects of mini-client.</p>
 <p>Given a service exposing:</p>
 <ul>
@@ -88,7 +95,7 @@ console.log(`Result is: ${sum}`)
 <li>group <code>b</code> with api <code>ping</code></li>
 </ul>
 <p>the final Mini-client will be:</p>
-<pre><code class="lang-javascript">client = {
+<pre><code class="lang-js">client = {
   ping(),
   a: {
     ping(),
@@ -99,10 +106,10 @@ console.log(`Result is: ${sum}`)
   }
 }
 </code></pre>
-<h2 id="1-x-to-2-x-changes">1.x to 2.x changes</h2>
+<h2 id="1-x-to-2-x-migration">1.x to 2.x migration</h2>
 <p>Local services, as remote services, <strong>must</strong> have <code>name</code> and <code>version</code> options defined</p>
 <p>When loading services, the <code>services</code> property was renamed to <code>groups</code>, and <code>serviceOpts</code> is now <code>groupOpts</code>:</p>
-<pre><code class="lang-javascript">const {startServer} = require('mini-service')
+<pre><code class="lang-js">const {startServer} = require('mini-service')
 
 startServer({
   groups: [ // was services previously
