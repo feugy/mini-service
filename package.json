@@ -1,6 +1,6 @@
 {
   "name": "mini-service",
-  "version": "3.3.0",
+  "version": "3.3.1",
   "description": "Micro services done simply. Choose to run them locally or remotely",
   "author": "feugy <damien.feugas@gmail.com>",
   "license": "MIT",

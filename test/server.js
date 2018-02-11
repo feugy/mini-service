@@ -351,6 +351,17 @@ describe('service\'s server', () => {
       }
       throw new Error('should have failed')
     })
+
+    it('should not complain about big payload', {timeout: 5e3}, async () => {
+      const name = Array.from({length: 1024 * 1024 * 10}, () => 'a').join('')
+      const greetings = await request({
+        method: 'POST',
+        url: `${server.info.uri}/api/sample/greeting`,
+        body: {name},
+        json: true
+      })
+      assert(greetings)
+    })
   })
 
   describe('server with an ordered list of groups', () => {
