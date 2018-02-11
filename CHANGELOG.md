@@ -1,6 +1,8 @@
 
 # Changelog
 
+## 3.3.1
+- fix max request payload limit by configuring it to a GB.
 - dependencies update
 
 ## 3.3.0
