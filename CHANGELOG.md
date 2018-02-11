@@ -1,17 +1,23 @@
 
 # Changelog
 
+## 4.0.0
+- Use async/await instead of promise-based code. Requires node@8+
+- **[Breaking change]**: `startServer()` used to throw synrchonous errors while validating configuration.
+   Now all errors are thrown asynchronously
+- Dependencies update, including Hapi 17
+
 ## 3.3.1
-- fix max request payload limit by configuring it to a GB.
-- dependencies update
+- Fix max request payload limit by configuring it to a GB.
+- Dependencies update
 
 ## 3.3.0
-- expose customizable OpenAPI descriptor (disabled by default)
-- allow default values for API parameters
-- allow documentation and validation of API result (disabled by default)
+- Expose customizable OpenAPI descriptor (disabled by default)
+- Allow default values for API parameters
+- Allow documentation and validation of API result (disabled by default)
 
 ## 3.2.1
-- disabled low-level socket timeout
+- Disabled low-level socket timeout
 
 ## 3.2.0
 - Support synchronous `init()` and API functions

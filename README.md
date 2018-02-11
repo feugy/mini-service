@@ -31,7 +31,7 @@ mini-service uses the latest ES6 features, so it requires node 6+
 Here is a simple calculator service definition, that exposes functions to add and subtract numbers.
 
 `calc-service.js`
-```javascript
+```js
 module.exports = {
   name: 'calc-service',
   version: '1.0.0',
@@ -47,7 +47,7 @@ If you want to use it locally in a different file:
 require the service definition, and create a [mini-client][mini-client-url] with it
 
 `caller-local.js`
-```javascript
+```js
 const {getClient} = require('mini-service')
 const calcService = require('./calc-service')
 
@@ -57,7 +57,7 @@ const calc = getClient(calcService)
 Then, init it (it's an async operation) and invoke any exposed API you need:
 
 `caller-local.js`
-```javascript
+```js
 await calc.init()
 const sum = await calc.add(10, 5)
 console.log(`Result is: ${sum}`)
@@ -67,7 +67,7 @@ Now let's imagine you need to deploy your calculator service in a standalone Htt
 To turn your local service into a real server, expose your service definition with mini-service's `startServer()`:
 
 `calc-service.js`
-```javascript
+```js
 const {startServer} = require('mini-service')
 
 module.exports = {...} // same service definition as above
@@ -79,7 +79,7 @@ A server is now listening on port 3000.
 And to use it from a remote caller, creates a mini-client giving the proper url:
 
 `caller-remote.js`
-```javascript
+```js
 const getClient = require('mini-client') // or: const {getClient} = require('mini-service')
 
 const calc = getClient({
@@ -91,7 +91,7 @@ Please note that you **don't need to require the service definition anymore**.
 Usage is exactly the same as previously.
 
 `caller-remote.js`
-```javascript
+```js
 await calc.init() // no-op, can be skipped
 const sum = await calc.add(10, 5)
 console.log(`Result is: ${sum}`)
@@ -108,7 +108,16 @@ This project was kindly sponsored by [nearForm][nearform].
 Copyright [Damien Simonin Feugas][feugy] and other contributors, licensed under [MIT](./LICENSE).
 
 
-## 2.x to 3.x changes
+## 3.x to 4.x migration
+
+Version 4 is using async/await, which requires node@8+.
+
+The only breaking change is on `startServer()`:
+- previously it threw synrchonous errors while validating configuration.
+- now all errors are thrown asynchronously
+
+
+## 2.x to 3.x migration
 
 Groups are now used as sub-objects of mini-client.
 
@@ -118,7 +127,7 @@ Given a service exposing:
 - group `b` with api `ping`
 
 the final Mini-client will be:
-```javascript
+```js
 client = {
   ping(),
   a: {
@@ -132,13 +141,13 @@ client = {
 ```
 
 
-## 1.x to 2.x changes
+## 1.x to 2.x migration
 
 Local services, as remote services, **must** have `name` and `version` options defined
 
 When loading services, the `services` property was renamed to `groups`, and `serviceOpts` is now `groupOpts`:
 
-```javascript
+```js
 const {startServer} = require('mini-service')
 
 startServer({

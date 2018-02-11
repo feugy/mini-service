@@ -7,10 +7,9 @@
   ],
   "dest": "./docs",
   "jsdoc": {
-    "allowUnknownTags": false,
+    "allowUnknownTags": true,
     "hierarchy": true,
-    "recurse": true,
-    "sort": "grouped"
+    "recurse": true
   },
   "app": {
     "title": "Mini-service documentation",
@@ -19,9 +18,9 @@
   },
   "template": {
     "path": "default",
-    "outline": "flat",
     "options": {
       "title": "mini-service",
+      "outline": "tree",
       "navItems": [{
         "iconClass": "glyphicon glyphicon-map-marker",
         "label": "Welcome",

@@ -8,5 +8,5 @@ Disabled by default, provide `swagger` option to service definition to enable it
 To run the example:
 > node documented-service
 
-Then open a browser to http://localhost:3000/documentation
+Then open a browser to http://localhost:3000/doc
 
