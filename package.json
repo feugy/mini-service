@@ -1,6 +1,6 @@
 {
   "name": "mini-service",
-  "version": "4.0.0",
+  "version": "4.1.0",
   "description": "Micro services done simply. Choose to run them locally or remotely",
   "author": "feugy <damien.feugas@gmail.com>",
   "license": "MIT",
@@ -28,8 +28,8 @@
     "hoek": "~5.0.3",
     "inert": "~5.1.0",
     "joi": "~13.1.2",
-    "mini-client": "~4.0.0",
-    "mini-service-utils": "~2.4.0",
+    "mini-client": "~4.1.0",
+    "mini-service-utils": "~3.0.1",
     "vision": "~5.3.1"
   },
   "devDependencies": {

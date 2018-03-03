@@ -113,11 +113,15 @@ describe('service\'s server', () => {
     }, {
       group: 'sample', id: 'boomError', params: [], path: '/api/sample/boomError'
     }, {
+      group: 'sample', id: 'withExoticParameters', params: ['param1', 'param2', 'other'], path: '/api/sample/withExoticParameters'
+    }, {
       group: 'synchronous', id: 'greeting', params: ['name'], path: '/api/synchronous/greeting'
     }, {
       group: 'synchronous', id: 'getUndefined', params: [], path: '/api/synchronous/getUndefined'
     }, {
       group: 'synchronous', id: 'boomError', params: [], path: '/api/synchronous/boomError'
+    }, {
+      group: 'synchronous', id: 'withExoticParameters', params: ['param1', 'param2', 'other'], path: '/api/synchronous/withExoticParameters'
     }]
     const checksum = crc32(JSON.stringify(exposedApis))
 
@@ -371,6 +375,38 @@ describe('service\'s server', () => {
         return
       }
       throw new Error('should have failed')
+    })
+
+    it('should handle async API with exotic parameters', async () => {
+      const result = await request({
+        method: 'POST',
+        url: `${server.info.uri}/api/sample/withExoticParameters`,
+        body: {
+          param1: [1, 2],
+          param2: {c: {d: 3}},
+          other: 4,
+          3: 5, // according to arrayToObj(), param0 is 0, param2 is 1, other is 2.
+          4: 6
+        },
+        json: true
+      })
+      assert.deepStrictEqual(result, [1, 2, 3, 4, 5, 6])
+    })
+
+    it('should handle sync API with exotic parameters', async () => {
+      const result = await request({
+        method: 'POST',
+        url: `${server.info.uri}/api/synchronous/withExoticParameters`,
+        body: {
+          param1: [1, 2],
+          param2: {c: {d: 3}},
+          other: 4,
+          3: 5, // according to arrayToObj(), param0 is 0, param2 is 1, other is 2.
+          4: 6
+        },
+        json: true
+      })
+      assert.deepStrictEqual(result, [1, 2, 3, 4, 5, 6])
     })
 
     it('should not complain about big payload', {timeout: 5e3}, async () => {
