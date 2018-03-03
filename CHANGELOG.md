@@ -1,10 +1,15 @@
 
 # Changelog
 
+## 4.1.0
+- Fix parsing error on exposed API written as `async a => {}` (usage of mini-serivce-utils@3.0.0)
+- Added support of destructured parameters and rest parameters (previously was throwing errors)
+
 ## 4.0.0
 - Use async/await instead of promise-based code. Requires node@8+
 - **[Breaking change]**: `startServer()` used to throw synrchonous errors while validating configuration.
    Now all errors are thrown asynchronously
+- Fix exposed API with single parameter and default value exposed as `GET` (are proper `POST` now)
 - Dependencies update, including Hapi 17
 
 ## 3.3.1
@@ -28,7 +33,7 @@
 - Use [standard.js](https://standardjs.com/) lint configuration
 
 ## 3.0.0
-- [*Breaking change*] Use mini-client@3.0.0 that uses sub-objects for exposed groups.
+- **[Breaking change]** Use mini-client@3.0.0 that uses sub-objects for exposed groups.
 - Returns CRC32 checksum of exposed API during every call, to allow mini-client checking compatibility
 - Dependency update (except Joi 11 that introduced a regression in Hapi)
 
@@ -36,11 +41,11 @@
 
 ## 2.0.0
 - Externalized client using [mini-client][mini-client-url], to decouple clients and service code
-- [*Breaking change*] Introduce new terminology, with service descriptor and API groups
-- [*Breaking change*] When parsing exposed APIs, expect 'group' property instead of 'name'
+- **[Breaking change]** Introduce new terminology, with service descriptor and API groups
+- **[Breaking change]** When parsing exposed APIs, expect 'group' property instead of 'name'
 - Allow to declare API without groups
 - Allow to declare API validation in group options
-- [*Breaking change*] Force name+version on local client
+- **[Breaking change]** Force name+version on local client
 - Better documentation and code examples
 - More understandable error messages
 
