@@ -81,8 +81,8 @@ module.exports = async (opts = {}) => {
     }
   }
 
-  // adds output documentation
-  apis.ping.responseSchema = Joi.date().required()
+  // adds output documentation: no validation enforce (validateResponse is undefined)
+  apis.ping.responseSchema = Joi.object({time: Joi.date().required()})
 
   // adds input validation
   apis.greeting.validate = [Joi.string().required()]

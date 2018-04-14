@@ -2,18 +2,19 @@
 <html><head></head><body><h1 id="mini-service">Mini-service</h1>
 <hr />
 <p>Simplistic µService library</p>
-<p><a href="https://npmjs.org/package/mini-service"><img src="https://img.shields.io/npm/v/mini-service.svg" alt="npm package"></a>
-<a href="https://nodesecurity.io/orgs/perso/projects/6bc9b474-6f9e-4db0-a4d3-c3bf5443a63a"><img src="https://nodesecurity.io/orgs/perso/projects/6bc9b474-6f9e-4db0-a4d3-c3bf5443a63a/badge" alt="NSP Status"></a>
-<a href="https://david-dm.org/feugy/mini-service"><img src="https://img.shields.io/david/feugy/mini-service.svg" alt="dependencies"></a>
-<a href="https://travis-ci.org/feugy/mini-service"><img src="https://api.travis-ci.org/feugy/mini-service.svg" alt="build"></a>
-<a href="https://coveralls.io/r/feugy/mini-service?branch=master"><img src="https://img.shields.io/coveralls/feugy/mini-service/master.svg" alt="coverage"></a>
-<a href="https://github.com/feugy/mini-service/blob/master/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License: MIT"></a></p>
+<p><a href="https://npmjs.org/package/mini-service"><img src="https://img.shields.io/npm/v/mini-service.svg" alt="npm package" style="max-width: 100%;"></a>
+<a href="https://nodesecurity.io/orgs/perso/projects/6bc9b474-6f9e-4db0-a4d3-c3bf5443a63a"><img src="https://nodesecurity.io/orgs/perso/projects/6bc9b474-6f9e-4db0-a4d3-c3bf5443a63a/badge" alt="NSP Status" style="max-width: 100%;"></a>
+<a href="https://david-dm.org/feugy/mini-service"><img src="https://img.shields.io/david/feugy/mini-service.svg" alt="dependencies" style="max-width: 100%;"></a>
+<a href="https://travis-ci.org/feugy/mini-service"><img src="https://api.travis-ci.org/feugy/mini-service.svg" alt="build" style="max-width: 100%;"></a>
+<a href="https://coveralls.io/r/feugy/mini-service?branch=master"><img src="https://img.shields.io/coveralls/feugy/mini-service/master.svg" alt="coverage" style="max-width: 100%;"></a>
+<a href="https://github.com/feugy/mini-service/blob/master/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License: MIT" style="max-width: 100%;"></a></p>
 <ul>
 <li><a href="https://feugy.github.io/mini-service/?api">API Reference</a></li>
 <li><a href="https://feugy.github.io/mini-service/?content=faq">Frequently asked questions</a></li>
 <li><a href="https://github.com/feugy/mini-service/tree/master/examples">Examples</a></li>
 </ul>
 <h2 id="introduction">Introduction</h2>
+<hr />
 <p>The goal of mini-service is to give the minimal structure to implement a µService, that can be invoked locally or remotely.</p>
 <p>Its principles are the following:</p>
 <ul>
@@ -24,6 +25,7 @@
 </ul>
 <p>mini-service uses the latest ES6 features, so it requires node 6+</p>
 <h2 id="example">Example</h2>
+<hr />
 <p>Here is a simple calculator service definition, that exposes functions to add and subtract numbers.</p>
 <p><code>calc-service.js</code></p>
 <pre><code class="lang-js">module.exports = {
@@ -76,17 +78,23 @@ const sum = await calc.add(10, 5)
 console.log(`Result is: ${sum}`)
 </code></pre>
 <h2 id="acknowledgements">Acknowledgements</h2>
+<hr />
 <p>This project was kindly sponsored by <a href="http://nearform.com">nearForm</a>.</p>
 <h2 id="license">License</h2>
+<hr />
 <p>Copyright <a href="https://github.com/feugy">Damien Simonin Feugas</a> and other contributors, licensed under <a href="./LICENSE">MIT</a>.</p>
-<h2 id="3-x-to-4-x-migration">3.x to 4.x migration</h2>
+<h2 id="changelog---migration-guide">Changelog &amp; migration guide</h2>
+<hr />
+<p>All changes to this project are be documented <a href="https://feugy.github.io/mini-service/?content=changelog">here</a>. </p>
+<p>The format is based on <a href="https://keepachangelog.com">Keep a Changelog</a> and this project adheres to <a href="https://semver.org">Semantic Versioning</a>.</p>
+<h3 id="3x-to-4x-migration">3.x to 4.x migration</h3>
 <p>Version 4 is using async/await, which requires node@8+.</p>
 <p>The only breaking change is on <code>startServer()</code>:</p>
 <ul>
 <li>previously it threw synrchonous errors while validating configuration.</li>
 <li>now all errors are thrown asynchronously</li>
 </ul>
-<h2 id="2-x-to-3-x-migration">2.x to 3.x migration</h2>
+<h4 id="2x-to-3x-migration">2.x to 3.x migration</h4>
 <p>Groups are now used as sub-objects of mini-client.</p>
 <p>Given a service exposing:</p>
 <ul>
@@ -106,7 +114,7 @@ console.log(`Result is: ${sum}`)
   }
 }
 </code></pre>
-<h2 id="1-x-to-2-x-migration">1.x to 2.x migration</h2>
+<h3 id="1x-to-2x-migration">1.x to 2.x migration</h3>
 <p>Local services, as remote services, <strong>must</strong> have <code>name</code> and <code>version</code> options defined</p>
 <p>When loading services, the <code>services</code> property was renamed to <code>groups</code>, and <code>serviceOpts</code> is now <code>groupOpts</code>:</p>
 <pre><code class="lang-js">const {startServer} = require('mini-service')

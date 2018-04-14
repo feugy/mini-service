@@ -108,7 +108,13 @@ This project was kindly sponsored by [nearForm][nearform].
 Copyright [Damien Simonin Feugas][feugy] and other contributors, licensed under [MIT](./LICENSE).
 
 
-## 3.x to 4.x migration
+## Changelog & migration guide
+
+All changes to this project are be documented [here][changelog]. 
+
+The format is based on [Keep a Changelog][keep-a-changelog] and this project adheres to [Semantic Versioning][semver].
+
+### 3.x to 4.x migration
 
 Version 4 is using async/await, which requires node@8+.
 
@@ -117,7 +123,7 @@ The only breaking change is on `startServer()`:
 - now all errors are thrown asynchronously
 
 
-## 2.x to 3.x migration
+#### 2.x to 3.x migration
 
 Groups are now used as sub-objects of mini-client.
 
@@ -141,7 +147,7 @@ client = {
 ```
 
 
-## 1.x to 2.x migration
+### 1.x to 2.x migration
 
 Local services, as remote services, **must** have `name` and `version` options defined
 
@@ -182,3 +188,6 @@ startServer({
 [license-url]: https://github.com/feugy/mini-service/blob/master/LICENSE
 [nsp-badge]: https://nodesecurity.io/orgs/perso/projects/6bc9b474-6f9e-4db0-a4d3-c3bf5443a63a/badge
 [nsp-url]: https://nodesecurity.io/orgs/perso/projects/6bc9b474-6f9e-4db0-a4d3-c3bf5443a63a
+[changelog]: https://feugy.github.io/mini-service/?content=changelog
+[keep-a-changelog]: https://keepachangelog.com
+[semver]: https://semver.org

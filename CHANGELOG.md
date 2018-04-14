@@ -1,82 +1,130 @@
 
 # Changelog
 
-## 4.1.0
-- Fix parsing error on exposed API written as `async a => {}` (usage of mini-serivce-utils@3.0.0)
-- Added support of destructured parameters and rest parameters (previously was throwing errors)
+## Unreleased
+#### Changed
+- Reformat CHANGELOG to follow [Keep a Changelog](https://keepachangelog.com) recommandations
+- New documentation with latest docma v2.0.0
+- Dependency updates
 
-## 4.0.0
-- Use async/await instead of promise-based code. Requires node@8+
-- **[Breaking change]**: `startServer()` used to throw synrchonous errors while validating configuration.
+## 4.1.0 - 2018-03-03
+#### Added
+- Support of destructured parameters and rest parameters (previously was throwing errors)
+
+#### Fixed
+- Parsing error on exposed API written as `async a => {}` (usage of mini-service-utils v3.0.0)
+
+
+## 4.0.0 - 2018-02-11
+#### Changed
+- **Breaking**: `startServer()` used to throw synrchonous errors while validating configuration.
    Now all errors are thrown asynchronously
-- Fix exposed API with single parameter and default value exposed as `GET` (are proper `POST` now)
+- **Breaking**: Uses async/await instead of promise-based code. Requires node@8+
 - Dependencies update, including Hapi 17
 
-## 3.3.1
-- Fix max request payload limit by configuring it to a GB.
-- Dependencies update
+#### Fixed
+- Exposed API with single parameter and default value exposed as `GET` (are proper `POST` now)
 
-## 3.3.0
+
+## 3.3.1 - 2018-02-11
+#### Added
 - Expose customizable OpenAPI descriptor (disabled by default)
-- Allow default values for API parameters
 - Allow documentation and validation of API result (disabled by default)
 
-## 3.2.1
+#### Changed
+- Dependencies update
+
+#### Fixed
+- Max request payload limit by configuring it to 1 GB.
+- Allow default values for API parameters
+
+
+## 3.2.1 - 2017-12-04
+#### Fixed
 - Disabled low-level socket timeout
 
-## 3.2.0
+
+## 3.2.0 - 2017-10-02
+#### Changed
 - Support synchronous `init()` and API functions
 - Dependencies update
 
-## 3.1.0
+
+## 3.1.0 - 2017-10-01
+#### Changed
 - Don't wrap Boom errors to keep http status codes
 - Use [standard.js](https://standardjs.com/) lint configuration
 
-## 3.0.0
-- **[Breaking change]** Use mini-client@3.0.0 that uses sub-objects for exposed groups.
+
+## 3.0.0 - 2017-09-24
+#### Changed
+- **Breaking**: uses mini-client@3.0.0 that uses sub-objects for exposed groups.
 - Returns CRC32 checksum of exposed API during every call, to allow mini-client checking compatibility
 - Dependency update (except Joi 11 that introduced a regression in Hapi)
 
-## 2.1.0
 
-## 2.0.0
-- Externalized client using [mini-client][mini-client-url], to decouple clients and service code
-- **[Breaking change]** Introduce new terminology, with service descriptor and API groups
-- **[Breaking change]** When parsing exposed APIs, expect 'group' property instead of 'name'
+## 2.0.0 - 2017-04-09
+#### Added
 - Allow to declare API without groups
 - Allow to declare API validation in group options
-- **[Breaking change]** Force name+version on local client
 - Better documentation and code examples
+
+
+#### Changed
+- Externalized client using [mini-client][mini-client-url], to decouple clients and service code
+- **Breaking**: Introduce new terminology, with service descriptor and API groups
+- **Breaking**: When parsing exposed APIs, expect 'group' property instead of 'name'
+- **Breaking**: Force name+version on local client
 - More understandable error messages
 
-## 1.3.0
+
+## 1.3.0 - 2019-08-29
+#### Changed
 - Add NSP checks, and upgrade vulnerable dependency
 
-## 1.2.2
-- fix parameter detection
-- fix Proxy that is detected as a Thenable object
 
-## 1.2.1
-- fix issue related to parameter name extraction when using arrow functions
+## 1.2.2 - 2016-07-26
+#### Fixed
+- Parameter detection
+- Proxies that are detected as a Thenable object
 
-## 1.2.0
-- use proxy to delay remotely exposed Apis retrieval to the first effective usage
-- activate Travis CI and coveralls reports
-- update dependencies
 
-## 1.1.3
-- client functions always returns a real promise (request-promise return a mixed stream + promise object that prevent direct usage in Hapi)
-- checks exposed services interface to avoid mistakes
+## 1.2.1 - 2016-07-22
+#### Fixed
+- Issue related to parameter name extraction when using arrow functions
 
-## 1.1.2
-- update dependencies
-- use lab configuration file
 
-## 1.1.1
-- fix bug that prevent to specify version when creating the service
+## 1.2.0 - 2016-07-19
+#### Added
+- Use proxy to delay remotely exposed Apis retrieval to the first effective usage
+- Activate Travis CI and coveralls reports
 
-## 1.1.0
-- allows to use general logger object within exposed services
+#### Changed
+- Dependencies update
 
-## 1.0.0
-- initial release
+
+## 1.1.3 - 2016-07-14
+#### Fixed
+- Client functions always returns a real promise (request-promise return a mixed stream + promise object that prevent direct usage in Hapi)
+- Checks exposed services interface to avoid mistakes
+
+
+## 1.1.2 - 2016-07-13
+#### Changed
+- Dependencies update
+- Use lab configuration file
+
+
+## 1.1.1 - 2016-07-05
+#### Fixed
+- Bug preventing to specify version when creating the service
+
+
+## 1.1.0 - 2016-07-05
+#### Changed
+- Allows to use general logger object within exposed services
+
+
+## 1.0.0 - 2016-07-04
+#### Added
+- Initial release

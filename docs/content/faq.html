@@ -14,6 +14,7 @@
 <li><a href="#can-endpoint-method-headers-query-be-configured-">Can endpoint method/headers/query be configured?</a></li>
 </ul>
 <h2 id="what-are-deployment-modes-">What are deployment modes?</h2>
+<hr />
 <p>µServices based on mini-service could be deployed either:</p>
 <ul>
 <li><p>locally: runs on the same nodejs process as the caller code</p>
@@ -62,6 +63,7 @@ const sum = await calc.add(10 + 5)
 </ul>
 <p>No need to add the service code as a dependency when using <code>getClient()</code> with remote url/</p>
 <h2 id="can-exposed-api-be-asynchronous-">Can exposed API be asynchronous?</h2>
+<hr />
 <p>Yes, by using Promises:</p>
 <pre><code class="lang-js">const {startService} = require('mini-service')
 
@@ -76,6 +78,7 @@ startService({
 })
 </code></pre>
 <h2 id="where-to-put-asynchronous-initialization-">Where to put asynchronous initialization?</h2>
+<hr />
 <p>To serve this purpose, the <code>init()</code> function can be either synchronous or return a Promise.</p>
 <pre><code class="lang-js">const {promisify} = require('util')
 const readFile = promisify(require('readFile').readFile)
@@ -95,6 +98,7 @@ startService({
 </code></pre>
 <p>Rejecting the <code>init()</code> promise will prevent server to start.</p>
 <h2 id="can-initialization-code-be-configured-">Can initialization code be configured?</h2>
+<hr />
 <p><code>init()</code> functions are invoked with a single Object parameter, populated with values from the service descriptor.</p>
 <pre><code class="lang-js">const {promisify} = require('util')
 const readFile = promisify(require('readFile').readFile)
@@ -120,6 +124,7 @@ startService({
 </code></pre>
 <p>If you use <a href="#how-can-service-definition-be-more-modular">API groups</a>, each group has its own configuration object stored in <code>groupOpts[group.name]</code>.</p>
 <h2 id="how-can-service-definition-be-more-modular-">How can service definition be more modular?</h2>
+<hr />
 <p>Service definition object tend to grow quickly.
 API groups is how mini-service makes the code more modular.</p>
 <p>This big service definition:</p>
@@ -178,6 +183,7 @@ module.exports = {
 </code></pre>
 <p>Please note that groups are initialized <strong>sequentially</strong>, following the declaration order.</p>
 <h2 id="how-can-initialisation-be-shared-by-different-groups-">How can initialisation be shared by different groups?</h2>
+<hr />
 <p>Services are initialized sequentially.
 One can use orderring to perform shared initialization.</p>
 <pre><code class="lang-js">// server.js
@@ -213,6 +219,7 @@ module.exports = (shared, opts) {
 }
 </code></pre>
 <h2 id="how-could-input-parameters-be-validated-">How could input parameters be validated?</h2>
+<hr />
 <p>As parameters validation is a common pattern (syntactic validation), mini-service supports it out of the box.
 Parameters of exposed API could be validated with <a href="https://github.com/hapijs/joi/blob/master/API.md">Joi</a>.</p>
 <p>Assign an array of <em>validation schemas</em> to the <code>validate</code> property of an exposed API.
@@ -238,6 +245,7 @@ startService({
 <p>Prior to any invokation of the API, incoming parameters will be matched against the validation schema.
 The invokation will fail with a 400 error (Bad Request) if they don't comply.</p>
 <h2 id="how-could-results-be-validated-">How could results be validated?</h2>
+<hr />
 <p>Although less common, returned results can be validated against a <a href="https://github.com/hapijs/joi/blob/master/API.md">Joi</a> schema by assigning to the expose API:</p>
 <ul>
 <li>a <em>validation schemas</em> to the <code>responseSchema</code>.</li>
@@ -262,6 +270,7 @@ startService({
 })
 </code></pre>
 <h2 id="is-swagger-openapi-supported-">Is Swagger/OpenAPI supported?</h2>
+<hr />
 <p>Yes, but is disabled by default. It can only be used through <code>startService()</code>.</p>
 <p>To enable and customize it, use <code>openApi</code> configuration key.
 Documentation can be added:</p>
@@ -316,6 +325,7 @@ startService({
 </code></pre>
 <p>See a more <a href="https://github.com/feugy/mini-service/tree/master/examples/documented-service">complete example</a>.</p>
 <h2 id="can-endpoint-method-headers-query-be-configured-">Can endpoint method/headers/query be configured?</h2>
+<hr />
 <p>No it cannot.</p>
 <p>Mini-service purposely hides details regarding exposed Http endpoints.
 Its goal is not to be another web framework, but acts more as an remote-procedure-call toolkit.</p>

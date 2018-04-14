@@ -1,101 +1,157 @@
 
 <html><head></head><body><h1 id="changelog">Changelog</h1>
 <hr />
-<h2 id="4-1-0">4.1.0</h2>
+<h2 id="unreleased">Unreleased</h2>
+<hr />
+<h4 id="changed">Changed</h4>
 <ul>
-<li>Fix parsing error on exposed API written as <code>async a =&gt; {}</code> (usage of mini-serivce-utils@3.0.0)</li>
-<li>Added support of destructured parameters and rest parameters (previously was throwing errors)</li>
+<li>Reformat CHANGELOG to follow <a href="https://keepachangelog.com">Keep a Changelog</a> recommandations</li>
+<li>New documentation with latest docma v2.0.0</li>
+<li>Dependency updates</li>
 </ul>
-<h2 id="4-0-0">4.0.0</h2>
+<h2 id="410---2018-03-03">4.1.0 - 2018-03-03</h2>
+<hr />
+<h4 id="added">Added</h4>
 <ul>
-<li>Use async/await instead of promise-based code. Requires node@8+</li>
-<li><strong>[Breaking change]</strong>: <code>startServer()</code> used to throw synrchonous errors while validating configuration.
+<li>Support of destructured parameters and rest parameters (previously was throwing errors)</li>
+</ul>
+<h4 id="fixed">Fixed</h4>
+<ul>
+<li>Parsing error on exposed API written as <code>async a =&gt; {}</code> (usage of mini-service-utils v3.0.0)</li>
+</ul>
+<h2 id="400---2018-02-11">4.0.0 - 2018-02-11</h2>
+<hr />
+<h4 id="changed">Changed</h4>
+<ul>
+<li><strong>Breaking</strong>: <code>startServer()</code> used to throw synrchonous errors while validating configuration.
  Now all errors are thrown asynchronously</li>
-<li>Fix exposed API with single parameter and default value exposed as <code>GET</code> (are proper <code>POST</code> now)</li>
+<li><strong>Breaking</strong>: Uses async/await instead of promise-based code. Requires node@8+</li>
 <li>Dependencies update, including Hapi 17</li>
 </ul>
-<h2 id="3-3-1">3.3.1</h2>
+<h4 id="fixed">Fixed</h4>
 <ul>
-<li>Fix max request payload limit by configuring it to a GB.</li>
-<li>Dependencies update</li>
+<li>Exposed API with single parameter and default value exposed as <code>GET</code> (are proper <code>POST</code> now)</li>
 </ul>
-<h2 id="3-3-0">3.3.0</h2>
+<h2 id="331---2018-02-11">3.3.1 - 2018-02-11</h2>
+<hr />
+<h4 id="added">Added</h4>
 <ul>
 <li>Expose customizable OpenAPI descriptor (disabled by default)</li>
-<li>Allow default values for API parameters</li>
 <li>Allow documentation and validation of API result (disabled by default)</li>
 </ul>
-<h2 id="3-2-1">3.2.1</h2>
+<h4 id="changed">Changed</h4>
+<ul>
+<li>Dependencies update</li>
+</ul>
+<h4 id="fixed">Fixed</h4>
+<ul>
+<li>Max request payload limit by configuring it to 1 GB.</li>
+<li>Allow default values for API parameters</li>
+</ul>
+<h2 id="321---2017-12-04">3.2.1 - 2017-12-04</h2>
+<hr />
+<h4 id="fixed">Fixed</h4>
 <ul>
 <li>Disabled low-level socket timeout</li>
 </ul>
-<h2 id="3-2-0">3.2.0</h2>
+<h2 id="320---2017-10-02">3.2.0 - 2017-10-02</h2>
+<hr />
+<h4 id="changed">Changed</h4>
 <ul>
 <li>Support synchronous <code>init()</code> and API functions</li>
 <li>Dependencies update</li>
 </ul>
-<h2 id="3-1-0">3.1.0</h2>
+<h2 id="310---2017-10-01">3.1.0 - 2017-10-01</h2>
+<hr />
+<h4 id="changed">Changed</h4>
 <ul>
 <li>Don't wrap Boom errors to keep http status codes</li>
 <li>Use <a href="https://standardjs.com/">standard.js</a> lint configuration</li>
 </ul>
-<h2 id="3-0-0">3.0.0</h2>
+<h2 id="300---2017-09-24">3.0.0 - 2017-09-24</h2>
+<hr />
+<h4 id="changed">Changed</h4>
 <ul>
-<li><strong>[Breaking change]</strong> Use mini-client@3.0.0 that uses sub-objects for exposed groups.</li>
+<li><strong>Breaking</strong>: uses <a href="mailto:mini-client@3.0.0">mini-client@3.0.0</a> that uses sub-objects for exposed groups.</li>
 <li>Returns CRC32 checksum of exposed API during every call, to allow mini-client checking compatibility</li>
 <li>Dependency update (except Joi 11 that introduced a regression in Hapi)</li>
 </ul>
-<h2 id="2-1-0">2.1.0</h2>
-<h2 id="2-0-0">2.0.0</h2>
+<h2 id="200---2017-04-09">2.0.0 - 2017-04-09</h2>
+<hr />
+<h4 id="added">Added</h4>
 <ul>
-<li>Externalized client using [mini-client][mini-client-url], to decouple clients and service code</li>
-<li><strong>[Breaking change]</strong> Introduce new terminology, with service descriptor and API groups</li>
-<li><strong>[Breaking change]</strong> When parsing exposed APIs, expect 'group' property instead of 'name'</li>
 <li>Allow to declare API without groups</li>
 <li>Allow to declare API validation in group options</li>
-<li><strong>[Breaking change]</strong> Force name+version on local client</li>
 <li>Better documentation and code examples</li>
+</ul>
+<h4 id="changed">Changed</h4>
+<ul>
+<li>Externalized client using [mini-client][mini-client-url], to decouple clients and service code</li>
+<li><strong>Breaking</strong>: Introduce new terminology, with service descriptor and API groups</li>
+<li><strong>Breaking</strong>: When parsing exposed APIs, expect 'group' property instead of 'name'</li>
+<li><strong>Breaking</strong>: Force name+version on local client</li>
 <li>More understandable error messages</li>
 </ul>
-<h2 id="1-3-0">1.3.0</h2>
+<h2 id="130---2019-08-29">1.3.0 - 2019-08-29</h2>
+<hr />
+<h4 id="changed">Changed</h4>
 <ul>
 <li>Add NSP checks, and upgrade vulnerable dependency</li>
 </ul>
-<h2 id="1-2-2">1.2.2</h2>
+<h2 id="122---2016-07-26">1.2.2 - 2016-07-26</h2>
+<hr />
+<h4 id="fixed">Fixed</h4>
 <ul>
-<li>fix parameter detection</li>
-<li>fix Proxy that is detected as a Thenable object</li>
+<li>Parameter detection</li>
+<li>Proxies that are detected as a Thenable object</li>
 </ul>
-<h2 id="1-2-1">1.2.1</h2>
+<h2 id="121---2016-07-22">1.2.1 - 2016-07-22</h2>
+<hr />
+<h4 id="fixed">Fixed</h4>
 <ul>
-<li>fix issue related to parameter name extraction when using arrow functions</li>
+<li>Issue related to parameter name extraction when using arrow functions</li>
 </ul>
-<h2 id="1-2-0">1.2.0</h2>
+<h2 id="120---2016-07-19">1.2.0 - 2016-07-19</h2>
+<hr />
+<h4 id="added">Added</h4>
 <ul>
-<li>use proxy to delay remotely exposed Apis retrieval to the first effective usage</li>
-<li>activate Travis CI and coveralls reports</li>
-<li>update dependencies</li>
+<li>Use proxy to delay remotely exposed Apis retrieval to the first effective usage</li>
+<li>Activate Travis CI and coveralls reports</li>
 </ul>
-<h2 id="1-1-3">1.1.3</h2>
+<h4 id="changed">Changed</h4>
 <ul>
-<li>client functions always returns a real promise (request-promise return a mixed stream + promise object that prevent direct usage in Hapi)</li>
-<li>checks exposed services interface to avoid mistakes</li>
+<li>Dependencies update</li>
 </ul>
-<h2 id="1-1-2">1.1.2</h2>
+<h2 id="113---2016-07-14">1.1.3 - 2016-07-14</h2>
+<hr />
+<h4 id="fixed">Fixed</h4>
 <ul>
-<li>update dependencies</li>
-<li>use lab configuration file</li>
+<li>Client functions always returns a real promise (request-promise return a mixed stream + promise object that prevent direct usage in Hapi)</li>
+<li>Checks exposed services interface to avoid mistakes</li>
 </ul>
-<h2 id="1-1-1">1.1.1</h2>
+<h2 id="112---2016-07-13">1.1.2 - 2016-07-13</h2>
+<hr />
+<h4 id="changed">Changed</h4>
 <ul>
-<li>fix bug that prevent to specify version when creating the service</li>
+<li>Dependencies update</li>
+<li>Use lab configuration file</li>
 </ul>
-<h2 id="1-1-0">1.1.0</h2>
+<h2 id="111---2016-07-05">1.1.1 - 2016-07-05</h2>
+<hr />
+<h4 id="fixed">Fixed</h4>
 <ul>
-<li>allows to use general logger object within exposed services</li>
+<li>Bug preventing to specify version when creating the service</li>
 </ul>
-<h2 id="1-0-0">1.0.0</h2>
+<h2 id="110---2016-07-05">1.1.0 - 2016-07-05</h2>
+<hr />
+<h4 id="changed">Changed</h4>
 <ul>
-<li>initial release</li>
+<li>Allows to use general logger object within exposed services</li>
+</ul>
+<h2 id="100---2016-07-04">1.0.0 - 2016-07-04</h2>
+<hr />
+<h4 id="added">Added</h4>
+<ul>
+<li>Initial release</li>
 </ul>
 </body></html>

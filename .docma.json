@@ -1,0 +1,63 @@
+{
+  "src": [
+    "./lib/**/*.js",
+    "./README.md",
+    "./FAQ.md",
+    "./CHANGELOG.md"
+  ],
+  "clean": true,
+  "dest": "./docs",
+  "jsdoc": {
+    "allowUnknownTags": true,
+    "hierarchy": true,
+    "recurse": true
+  },
+  "markdown": {
+    "gfm": true,
+    "tables": true,
+    "tasks": true,
+    "emoji": true
+  },
+  "app": {
+    "title": "Mini-service documentation",
+    "base": "/mini-service",
+    "server": "github",
+    "entrance": "content:readme"
+  },
+  "template": {
+    "path": "default",
+    "options": {
+      "title": "mini-service",
+      "sidebar": {
+        "itemsFolded": true
+      },
+      "symbols": {
+        "params": "table"
+      },
+      "navbar": {
+        "menu": [{
+          "iconClass": "far fa-compass fa-lg",
+          "label": "Welcome",
+          "href": "?content=readme"
+        }, {
+          "iconClass": "fas fa-book fa-lg",
+          "label": "API Reference",
+          "href": "?api"
+        }, {
+          "iconClass": "fas fa-fire fa-lg",
+          "label": "Changelog",
+          "href": "?content=changelog"
+        }, {
+          "iconClass": "far fa-question-circle fa-lg",
+          "label": "F.A.Q.",
+          "href": "?content=faq"
+        }, {
+          "iconClass": "fab fa-github fa-lg",
+          "label": "GitHub",
+          "href": "https://github.com/feugy/mini-service",
+          "target": "_blank"
+        }]
+      }
+    }
+  }
+}
