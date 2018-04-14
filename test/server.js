@@ -115,6 +115,8 @@ describe('service\'s server', () => {
     }, {
       group: 'sample', id: 'withExoticParameters', params: ['param1', 'param2', 'other'], path: '/api/sample/withExoticParameters'
     }, {
+      group: 'sample', id: 'bufferHandling', params: ['buffer'], path: '/api/sample/bufferHandling'
+    }, {
       group: 'synchronous', id: 'greeting', params: ['name'], path: '/api/synchronous/greeting'
     }, {
       group: 'synchronous', id: 'getUndefined', params: [], path: '/api/synchronous/getUndefined'
@@ -184,12 +186,14 @@ describe('service\'s server', () => {
       assert(checksum === response.headers['x-service-crc'])
     })
 
-    it('should invoke API without argument', async () =>
-      assert(await request({
+    it('should invoke API without argument', async () => {
+      const {time} = await request({
         method: 'GET',
-        url: `${server.info.uri}/api/sample/ping`
-      }))
-    )
+        url: `${server.info.uri}/api/sample/ping`,
+        json: true
+      })
+      assert(typeof time === 'string')
+    })
 
     it('should invoke async API with argument', async () => {
       const greetings = await request({
@@ -418,6 +422,18 @@ describe('service\'s server', () => {
         json: true
       })
       assert(greetings)
+    })
+
+    it('should send and receive buffers', async () => {
+      const response = await request({
+        method: 'POST',
+        url: `${server.info.uri}/api/sample/bufferHandling`,
+        body: Buffer.from(new Uint8Array([1, 2])),
+        resolveWithFullResponse: true
+      })
+      assert(response.headers['content-type'] === 'application/octet-stream')
+      const result = Buffer.from(response.body)
+      assert(Buffer.compare(result, Buffer.from(new Uint8Array([1, 2, 3, 4]))) === 0)
     })
   })
 

@@ -22,6 +22,7 @@
     "update-deps": "next-update -k true --tldr"
   },
   "dependencies": {
+    "bhttp": "^1.2.4",
     "boom": "~7.2.0",
     "crc32": "~0.2.2",
     "hapi": "~17.3.1",

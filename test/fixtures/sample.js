@@ -1,4 +1,5 @@
 const Joi = require('joi')
+const assert = require('power-assert')
 const {unauthorized} = require('boom')
 
 /**
@@ -78,6 +79,18 @@ module.exports = async (opts = {}) => {
      */
     async withExoticParameters ([a, b], {c: {d}} = {}, ...other) {
       return [a, b, d, ...other]
+    },
+
+    /**
+     * API expecting a buffer as parameter and returning the same buffer with a prefix.
+     *
+     * @async
+     * @param {Buffer} buffer - buffer handled
+     * @returns {Buffer} received buffer concatented with Uint8Array containing 3 and 4
+     */
+    async bufferHandling (buffer) {
+      assert(Buffer.isBuffer(buffer))
+      return Buffer.concat([buffer, new Uint8Array([3, 4])])
     }
   }
 
@@ -90,6 +103,9 @@ module.exports = async (opts = {}) => {
   // adds output documentation & validation
   apis.greeting.responseSchema = Joi.string().required()
   apis.greeting.validateResponse = true
+
+  // adds inut validation to enable buffer
+  apis.bufferHandling.validate = Joi.binary().required()
 
   return apis
 }

@@ -2,6 +2,9 @@
 # Changelog
 
 ## Unreleased
+#### Added
+- Support for Buffer parameters and results
+
 #### Changed
 - Reformat CHANGELOG to follow [Keep a Changelog](https://keepachangelog.com) recommandations
 - New documentation with latest docma v2.0.0

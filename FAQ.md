@@ -2,6 +2,7 @@
 
 - [What are deployment modes?](#what-are-deployment-modes-)
 - [Can exposed API be asynchronous?](#can-exposed-api-be-asynchronous-)
+- [Are there limitations on exposed API signatures?](#are-there-limitations-on-exposed-api-signatures-)
 - [Where to put asynchronous initialization?](#where-to-put-asynchronous-initialization-)
 - [Can initialization code be configured?](#can-initialization-code-be-configured-)
 - [How can service definition be more modular?](#how-can-service-definition-be-more-modular-)
@@ -81,6 +82,43 @@ startService({
   })
 })
 ```
+
+
+## Are there limitations on exposed API signatures?
+
+Despite all our efforts, yes. Hopefully main cases are covered.
+
+Because parameters will be stringified when sent to server:
+- they could be of these any type that fundamental objects: Array, Boolean, Number, Strings, Object
+- they could be `null` or `undefined`
+- they could be of other types (Date, Error, RegExp, custom classes...) but will boils down to the output of their `toString()` method
+
+In particular, don't use functions as parameters.
+
+Same limitations applies to API returned object.
+
+You can use destructuring, rest parameters and even default values:
+```js
+async withExoticParameters ([a, b], {c: {d}} = {}, ...other) {
+  return [a, b, d, ...other]
+}
+```
+
+However, Node's `Buffer` type is supported, as long as:
+- it is the only parameter, and the API has `Joi.binary` (not wrapped in an array) attached as input validation
+- it is returned by the API
+```js
+const api = {
+  async bufferHandling (buffer) {
+    assert(Buffer.isBuffer(buffer))
+    return Buffer.concat([buffer, new Uint8Array([3, 4])])
+  }
+}
+// adds inut validation to enable buffer
+apis.bufferHandling.validate = Joi.binary().required()
+```
+
+Nesting buffers in plain object doesn't work.
 
 
 ## Where to put asynchronous initialization?
