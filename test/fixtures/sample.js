@@ -1,6 +1,10 @@
 const Joi = require('joi')
 const assert = require('power-assert')
 const {unauthorized} = require('boom')
+const {Readable} = require('stream')
+process.env.READABLE_STREAM = 'disable' // make sure we don't use readable-stream polyfill
+const BufferList = require('bl')
+const multistream = require('multistream')
 
 /**
  * Initialize service and returns an object containing APIs functions
@@ -91,11 +95,25 @@ module.exports = async (opts = {}) => {
     async bufferHandling (buffer) {
       assert(Buffer.isBuffer(buffer))
       return Buffer.concat([buffer, new Uint8Array([3, 4])])
+    },
+
+    /**
+     * API expecting a stream as parameter and returning the same stream with a prefix.
+     *
+     * @async
+     * @param {Readable} stream - incoming stream
+     * @returns {Readable} incoming stream prefixed 'here is a prefix -- '
+     */
+    async streamHandling (stream) {
+      assert(stream instanceof Readable)
+      const prefix = new BufferList()
+      prefix.append('here is a prefix -- ', 'utf8')
+      return multistream([prefix, stream])
     }
   }
 
   // adds output documentation: no validation enforce (validateResponse is undefined)
-  apis.ping.responseSchema = Joi.object({time: Joi.date().required()})
+  apis.ping.responseSchema = Joi.object().keys({time: Joi.date().required()}).required()
 
   // adds input validation
   apis.greeting.validate = [Joi.string().required()]
@@ -104,8 +122,9 @@ module.exports = async (opts = {}) => {
   apis.greeting.responseSchema = Joi.string().required()
   apis.greeting.validateResponse = true
 
-  // adds inut validation to enable buffer
-  apis.bufferHandling.validate = Joi.binary().required()
+  // enable buffer/stream inputs
+  apis.bufferHandling.hasBufferInput = true
+  apis.streamHandling.hasStreamInput = true
 
   return apis
 }
