@@ -1,27 +1,26 @@
 const Lab = require('lab')
 const bunyan = require('bunyan')
 const assert = require('power-assert')
-const request = require('request-promise')
-const req = require('request')
+const got = require('got')
 const crc32 = require('crc32')
-const {checksumHeader} = require('mini-service-utils')
+const { checksumHeader } = require('mini-service-utils')
 const BufferList = require('bl')
-const {startServer} = require('../')
-const utils = require('./test-utils')
+const { expose, validateOpts } = require('../../lib/transports/http')
+const utils = require('../test-utils')
 
 const lab = exports.lab = Lab.script()
-const {describe, it, before, beforeEach, after, afterEach} = lab
+const { describe, it, before, beforeEach, after, afterEach } = lab
 
-describe('service\'s server', () => {
+describe('Http transport', () => {
   let started
   const name = 'test-server'
   const version = '1.0.0'
   const groups = [{
     name: 'sample',
-    init: require('./fixtures/sample')
+    init: require('../fixtures/sample')
   }, {
     name: 'synchronous',
-    init: require('./fixtures/synchronous')
+    init: require('../fixtures/synchronous')
   }]
   const init = async () => ({})
 
@@ -35,13 +34,13 @@ describe('service\'s server', () => {
   })
 
   it('should start with default port', async () => {
-    const server = await startServer({name, version, init})
+    const server = await expose({ name, version, init, transport: { type: 'http' } })
     await server.stop()
   })
 
   it('should handle configuration error', async () => {
     try {
-      await startServer({name, version, init, port: -1})
+      validateOpts({ name, version, init, transport: { type: 'http', port: -1 } })
     } catch (err) {
       assert(err instanceof Error)
       assert(err.message.includes('"port" must be larger than or equal to 0'))
@@ -52,10 +51,10 @@ describe('service\'s server', () => {
 
   it('should handle missing name', async () => {
     try {
-      await startServer({version, init})
+      await validateOpts({ version, init, transport: { type: 'http' } })
     } catch (err) {
       assert(err instanceof Error)
-      assert(err.message.includes('"name" and "version" options'))
+      assert(err.message.includes('"name" is required'))
       return
     }
     throw new Error('should have failed')
@@ -63,10 +62,10 @@ describe('service\'s server', () => {
 
   it('should handle missing version', async () => {
     try {
-      await startServer({name, init})
+      await validateOpts({ name, init, transport: { type: 'http' } })
     } catch (err) {
       assert(err instanceof Error)
-      assert(err.message.includes('"name" and "version" options'))
+      assert(err.message.includes('"version" is required'))
       return
     }
     throw new Error('should have failed')
@@ -74,7 +73,11 @@ describe('service\'s server', () => {
 
   it('should handle wrong validation object', async () => {
     try {
-      await startServer(require('./fixtures/invalid-schema'))
+      await expose(Object.assign({
+        transport: {
+          type: 'http'
+        }
+      }, require('../fixtures/invalid-schema')))
     } catch (err) {
       assert(err instanceof Error)
       assert(err.message.includes('exposed API invalidValidator (from group invalid-schema)'))
@@ -87,10 +90,10 @@ describe('service\'s server', () => {
   it('should handle start error', async () => {
     let err
     // given a started server
-    const first = await startServer({name, version, init})
+    const first = await expose({ name, version, init, transport: { type: 'http' } })
     // when starting another server on the same port
     try {
-      const second = await startServer({name, version, init, port: first.info.port})
+      const second = await expose({ name, version, init, transport: { type: 'http', port: first.info.port } })
       await second.stop()
     } catch (threw) {
       err = threw
@@ -197,132 +200,99 @@ describe('service\'s server', () => {
     const checksum = crc32(JSON.stringify(exposedApis))
 
     before(async () => {
-      server = await startServer({name, version, groups, openApi: {}})
+      server = await expose({ name, version, groups, transport: { type: 'http', openApi: {} } })
     })
 
     after(async () => server.stop())
 
-    it('should list exposed APIs', async () =>
-      assert.deepEqual(await request({
-        method: 'GET',
-        url: `${server.info.uri}/api/exposed`,
+    it('should list exposed APIs', async () => {
+      const { body: exposed } = await got.get(`${server.info.uri}/api/exposed`, {
         json: true
-      }), {
+      })
+      assert.deepStrictEqual(exposed, {
         name,
         version,
         apis: exposedApis
       })
-    )
+    })
 
     it('should expose documentation', async () =>
-      assert((await request({
-        method: 'GET',
-        url: `${server.info.uri}/documentation`
-      })).includes('/swaggerui/swagger-ui.js'))
+      assert((await got.get(`${server.info.uri}/documentation`)).body.includes('/swaggerui/swagger-ui.js'))
     )
 
     it('should expose openApi descriptor', async () => {
-      const descriptor = await request({
-        method: 'GET',
-        url: `${server.info.uri}/swagger.json`,
+      const { body: descriptor } = await got.get(`${server.info.uri}/swagger.json`, {
         json: true
       })
       assert(descriptor.swagger === '2.0')
       assert(descriptor.basePath === '/api')
-      assert.deepStrictEqual(descriptor.info, {title: 'API documentation', version})
+      assert.deepStrictEqual(descriptor.info, { title: 'API documentation', version })
     })
 
     it('should include CRC32 as header for API without parameter', async () => {
-      const response = await request({
-        method: 'GET',
-        url: `${server.info.uri}/api/sample/ping`,
-        json: true,
-        resolveWithFullResponse: true
-      })
-      assert(checksum === response.headers[checksumHeader])
+      const { headers } = await got.get(`${server.info.uri}/api/sample/ping`)
+      assert(checksum === headers[checksumHeader])
     })
 
     it('should include CRC32 as header for API with parameters', async () => {
-      const response = await request({
-        method: 'POST',
-        url: `${server.info.uri}/api/sample/greeting`,
-        body: {
-          name: 'John'
-        },
-        json: true,
-        resolveWithFullResponse: true
+      const { headers } = await got.post(`${server.info.uri}/api/sample/greeting`, {
+        body: JSON.stringify({ name: 'John' })
       })
-      assert(response.headers['x-service-crc'] === checksum)
+      assert(headers['x-service-crc'] === checksum)
     })
 
     it('should invoke API without argument', async () => {
-      const {time} = await request({
-        method: 'GET',
-        url: `${server.info.uri}/api/sample/ping`,
+      const { body: { time } } = await got.get(`${server.info.uri}/api/sample/ping`, {
         json: true
       })
       assert(typeof time === 'string')
     })
 
     it('should invoke async API with argument', async () => {
-      const greetings = await request({
-        method: 'POST',
-        url: `${server.info.uri}/api/sample/greeting`,
-        body: {
-          name: 'John'
-        },
-        json: true
+      const { body: greetings } = await got.post(`${server.info.uri}/api/sample/greeting`, {
+        body: JSON.stringify({ name: 'John' })
       })
       assert(greetings === 'Hello John !')
     })
 
     it('should invoke sync API with argument', async () => {
-      const greetings = await request({
-        method: 'POST',
-        url: `${server.info.uri}/api/synchronous/greeting`,
-        body: {
-          name: 'John'
-        },
-        json: true
+      const { body: greetings } = await got.post(`${server.info.uri}/api/synchronous/greeting`, {
+        body: JSON.stringify({ name: 'John' })
       })
       assert(greetings === 'Hello John !')
     })
 
     it('should handle argument validation for async API', async () => {
       try {
-        await request({
-          method: 'POST',
-          url: `${server.info.uri}/api/sample/greeting`,
+        await got.post(`${server.info.uri}/api/sample/greeting`, {
           body: {
             name: 10
           },
           json: true
         })
-      } catch ({error}) {
-        assert(error.message.includes('Incorrect parameters for API greeting'))
-        assert(error.message.includes('"name" must be a string'))
-        assert(error.error === 'Bad Request')
+      } catch (error) {
+        assert(error.statusMessage === 'Bad Request')
         assert(error.statusCode === 400)
+        assert(error.response.body.message.includes('Incorrect parameters for API greeting'))
+        assert(error.response.body.message.includes('"name" must be a string'))
         return
       }
       throw new Error('should have failed')
     })
 
-    it('should handle argument validation for async API', async () => {
+    it('should handle argument validation for sync API', async () => {
       try {
-        await request({
-          method: 'POST',
-          url: `${server.info.uri}/api/synchronous/greeting`,
+        await got.post(`${server.info.uri}/api/synchronous/greeting`, {
           body: {
             name: 10
           },
           json: true
         })
-      } catch ({error}) {
-        assert(error.message.includes('Incorrect parameters for API greeting'))
-        assert(error.message.includes('"name" must be a string'))
-        assert(error.error === 'Bad Request')
+      } catch (error) {
+        assert(error.statusMessage === 'Bad Request')
         assert(error.statusCode === 400)
+        assert(error.response.body.message.includes('Incorrect parameters for API greeting'))
+        assert(error.response.body.message.includes('"name" must be a string'))
         return
       }
       throw new Error('should have failed')
@@ -331,19 +301,17 @@ describe('service\'s server', () => {
     it('should handle response validation for async API', async () => {
       let res
       try {
-        res = await request({
-          method: 'POST',
-          url: `${server.info.uri}/api/sample/greeting`,
+        res = await got.post(`${server.info.uri}/api/sample/greeting`, {
           body: {
             name: 'boom'
           },
           json: true
         })
-      } catch ({error}) {
-        assert(error.message.includes('Incorrect response for API greeting'))
-        assert(error.message.includes('"greetingResult" must be a string'))
-        assert(error.error === 'Bad Response')
+      } catch (error) {
         assert(error.statusCode === 512)
+        assert(error.response.body.error === 'Bad Response')
+        assert(error.response.body.message.includes('Incorrect response for API greeting'))
+        assert(error.response.body.message.includes('"greetingResult" must be a string'))
         return
       }
       throw new Error(`unexpected result: ${JSON.stringify(res, null, 2)}`)
@@ -352,53 +320,41 @@ describe('service\'s server', () => {
     it('should handle response validation for sync API', async () => {
       let res
       try {
-        res = await request({
-          method: 'POST',
-          url: `${server.info.uri}/api/synchronous/greeting`,
+        res = await got.post(`${server.info.uri}/api/synchronous/greeting`, {
           body: {
             name: 'boom'
           },
           json: true
         })
-      } catch ({error}) {
-        assert(error.error === 'Bad Response')
-        assert(error.message.includes('Incorrect response for API greeting'))
-        assert(error.message.includes('"greetingResult" must be a string'))
+      } catch (error) {
         assert(error.statusCode === 512)
+        assert(error.response.body.error === 'Bad Response')
+        assert(error.response.body.message.includes('Incorrect response for API greeting'))
+        assert(error.response.body.message.includes('"greetingResult" must be a string'))
         return
       }
       throw new Error(`unexpected result: ${JSON.stringify(res, null, 2)}`)
     })
 
     it('should handle undefined results from async API', async () => {
-      const result = await request({
-        method: 'GET',
-        url: `${server.info.uri}/api/sample/getUndefined`,
-        json: true
-      })
-      assert(result === undefined)
+      const { headers } = await got.get(`${server.info.uri}/api/sample/getUndefined`)
+      assert(+headers['content-length'] === 0)
     })
 
     it('should handle undefined results from sync API', async () => {
-      const result = await request({
-        method: 'GET',
-        url: `${server.info.uri}/api/synchronous/getUndefined`,
-        json: true
-      })
-      assert(result === undefined)
+      const { headers } = await got.get(`${server.info.uri}/api/synchronous/getUndefined`)
+      assert(+headers['content-length'] === 0)
     })
 
     it('should handle API asynchronous failure', async () => {
       try {
-        await request({
-          method: 'GET',
-          url: `${server.info.uri}/api/sample/failing`,
+        await got.get(`${server.info.uri}/api/sample/failing`, {
           json: true
         })
-      } catch ({error}) {
+      } catch (error) {
         assert(error.statusCode === 599)
-        assert(error.message.includes('Error while calling API failing'))
-        assert(error.message.includes('something went really bad'))
+        assert(error.response.body.message.includes('Error while calling API failing'))
+        assert(error.response.body.message.includes('something went really bad'))
         return
       }
       throw new Error('should have failed')
@@ -406,15 +362,13 @@ describe('service\'s server', () => {
 
     it('should handle API synchronous failure', async () => {
       try {
-        await request({
-          method: 'GET',
-          url: `${server.info.uri}/api/sample/errored`,
+        await got.get(`${server.info.uri}/api/sample/errored`, {
           json: true
         })
-      } catch ({error}) {
+      } catch (error) {
         assert(error.statusCode === 599)
-        assert(error.message.includes('Error while calling API errored'))
-        assert(error.message.includes('errored API'))
+        assert(error.response.body.message.includes('Error while calling API errored'))
+        assert(error.response.body.message.includes('errored API'))
         return
       }
       throw new Error('should have failed')
@@ -422,14 +376,12 @@ describe('service\'s server', () => {
 
     it('should propagate Boom errors from async API', async () => {
       try {
-        await request({
-          method: 'GET',
-          url: `${server.info.uri}/api/sample/boomError`,
+        await got.get(`${server.info.uri}/api/sample/boomError`, {
           json: true
         })
-      } catch ({error}) {
+      } catch (error) {
         assert(error.statusCode === 401)
-        assert(error.message.includes('Custom authorization error'))
+        assert(error.response.body.message.includes('Custom authorization error'))
         return
       }
       throw new Error('should have failed')
@@ -437,26 +389,22 @@ describe('service\'s server', () => {
 
     it('should propagate Boom errors from sync API', async () => {
       try {
-        await request({
-          method: 'GET',
-          url: `${server.info.uri}/api/synchronous/boomError`,
+        await got.get(`${server.info.uri}/api/synchronous/boomError`, {
           json: true
         })
-      } catch ({error}) {
+      } catch (error) {
         assert(error.statusCode === 401)
-        assert(error.message.includes('Custom authorization error'))
+        assert(error.response.body.message.includes('Custom authorization error'))
         return
       }
       throw new Error('should have failed')
     })
 
     it('should handle async API with exotic parameters', async () => {
-      const result = await request({
-        method: 'POST',
-        url: `${server.info.uri}/api/sample/withExoticParameters`,
+      const { body: result } = await got.post(`${server.info.uri}/api/sample/withExoticParameters`, {
         body: {
           param1: [1, 2],
-          param2: {c: {d: 3}},
+          param2: { c: { d: 3 } },
           other: 4,
           3: 5, // according to arrayToObj(), param0 is 0, param2 is 1, other is 2.
           4: 6
@@ -467,12 +415,10 @@ describe('service\'s server', () => {
     })
 
     it('should handle sync API with exotic parameters', async () => {
-      const result = await request({
-        method: 'POST',
-        url: `${server.info.uri}/api/synchronous/withExoticParameters`,
+      const { body: result } = await got.post(`${server.info.uri}/api/synchronous/withExoticParameters`, {
         body: {
           param1: [1, 2],
-          param2: {c: {d: 3}},
+          param2: { c: { d: 3 } },
           other: 4,
           3: 5, // according to arrayToObj(), param0 is 0, param2 is 1, other is 2.
           4: 6
@@ -482,47 +428,39 @@ describe('service\'s server', () => {
       assert.deepStrictEqual(result, [1, 2, 3, 4, 5, 6])
     })
 
-    it('should not complain about big payload', {timeout: 5e3}, async () => {
-      const name = Array.from({length: 1024 * 1024 * 10}, () => 'a').join('')
-      const greetings = await request({
-        method: 'POST',
-        url: `${server.info.uri}/api/sample/greeting`,
-        body: {name},
-        json: true
+    it('should not complain about big payload', { timeout: 5e3 }, async () => {
+      const { body: greetings } = await got.post(`${server.info.uri}/api/sample/greeting`, {
+        body: `{"name":"${Array.from({ length: 1024 * 1024 * 10 }, () => 'a').join('')}"}`
       })
       assert(greetings)
     })
 
     it('should send and receive buffers', async () => {
-      const response = await request({
-        method: 'POST',
-        url: `${server.info.uri}/api/sample/bufferHandling`,
-        body: Buffer.from(new Uint8Array([1, 2])),
-        resolveWithFullResponse: true
+      const { headers, body } = await got.post(`${server.info.uri}/api/sample/bufferHandling`, {
+        body: Buffer.from(new Uint8Array([1, 2]))
       })
-      assert(response.headers['content-type'] === 'application/octet-stream')
-      assert(response.headers['x-service-crc'] === checksum)
-      const result = Buffer.from(response.body)
+      assert(headers['content-type'] === 'application/octet-stream')
+      assert(headers['x-service-crc'] === checksum)
+      const result = Buffer.from(body)
       assert(Buffer.compare(result, Buffer.from(new Uint8Array([1, 2, 3, 4]))) === 0)
     })
 
     it('should send and receive streams', async () => {
-      const {response, result} = await new Promise((resolve, reject) => {
+      const { response, result } = await new Promise((resolve, reject) => {
         let response
         const output = new BufferList()
         const input = new BufferList()
 
         input.pipe(
-          req.post(`${server.info.uri}/api/sample/streamHandling`)
-            .on('response', r => {
-              response = r
-            })
-            .on('end', () => {
-              resolve({response, result: output.toString()})
-            })
+          got.stream(`${server.info.uri}/api/sample/streamHandling`, { method: 'post' })
+            .on('response', r => { response = r })
+            .on('error', reject)
         )
           .pipe(output)
           .on('error', reject)
+          .on('finish', () => {
+            resolve({ response, result: output.toString() })
+          })
 
         input.append('here is the message body', 'utf8')
       })
@@ -536,7 +474,7 @@ describe('service\'s server', () => {
   describe('server with an ordered list of groups', () => {
     let server
     const initOrder = []
-    const ordered = Array.from({length: 3}).map((v, i) => ({
+    const ordered = Array.from({ length: 3 }).map((v, i) => ({
       name: `group-${i}`,
       init: async opts => {
         if (opts.fail) throw new Error(`group ${i} failed to initialize`)
@@ -557,19 +495,20 @@ describe('service\'s server', () => {
     })
 
     it('should keep order when registering locally', async () => {
-      server = await startServer({name, version, groups: ordered})
+      server = await expose({ name, version, groups: ordered, transport: { type: 'http' } })
       assert.deepEqual(initOrder, [0, 1, 2])
     })
 
     it('should stop initialisation at first error', async () => {
       try {
-        server = await startServer({
+        server = await expose({
           name,
           version,
           groups: ordered,
           groupOpts: {
-            'group-1': {fail: true}
-          }
+            'group-1': { fail: true }
+          },
+          transport: { type: 'http' }
         })
       } catch (err) {
         assert(err instanceof Error)
@@ -581,7 +520,7 @@ describe('service\'s server', () => {
     })
 
     it('should ignore groups that doesn\'t expose an object', async () => {
-      server = await startServer({
+      server = await expose({
         name,
         version,
         groups: [{
@@ -592,22 +531,24 @@ describe('service\'s server', () => {
           init: () => Promise.resolve(true)
         }, {
           name: 'init-array',
-          init: () => Promise.resolve([{worked: true}])
+          init: () => Promise.resolve([{ worked: true }])
         }, {
           name: 'init-empty',
           init: () => Promise.resolve(null)
-        }].concat(ordered)
+        }].concat(ordered),
+        transport: { type: 'http' }
       })
     })
 
     it('should enforce group name', async () => {
       try {
-        server = await startServer({
+        server = await expose({
           name,
           version,
           groups: [{
             init: () => Promise.resolve('initialized')
-          }]
+          }],
+          transport: { type: 'http' }
         })
       } catch (err) {
         assert(err instanceof Error)
@@ -619,12 +560,13 @@ describe('service\'s server', () => {
 
     it('should enforce group init function', async () => {
       try {
-        server = await startServer({
+        server = await expose({
           name,
           version,
           groups: [{
             name: 'test'
-          }]
+          }],
+          transport: { type: 'http' }
         })
       } catch (err) {
         assert(err instanceof Error)
@@ -635,25 +577,27 @@ describe('service\'s server', () => {
     })
 
     it('should manage init function not returning Promise', async () => {
-      server = await startServer({
+      server = await expose({
         name,
         version,
         groups: [{
           name: 'test',
-          init: () => ({test: () => 'test'})
-        }]
+          init: () => ({ test: () => 'test' })
+        }],
+        transport: { type: 'http' }
       })
     })
 
     it('should expose logger to groups', async () => {
       const logs = []
-      const logger = bunyan.createLogger({name: 'test'})
+      const logger = bunyan.createLogger({ name: 'test' })
       logger.warn = msg => logs.push(msg)
-      server = await startServer({
+      server = await expose({
         name,
         version,
         logger,
-        groups: ordered
+        groups: ordered,
+        transport: { type: 'http' }
       })
       assert.deepEqual(logs, ['from group 0', 'from group 1', 'from group 2'])
     })

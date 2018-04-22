@@ -54,6 +54,6 @@ module.exports = {
         .description('removed user id').example(1)
     ]
 
-    return {list, save, remove}
+    return { list, save, remove }
   }
 }

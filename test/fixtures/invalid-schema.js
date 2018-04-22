@@ -16,6 +16,6 @@ module.exports = {
     // adds input validation
     invalidValidator.validate = 10
 
-    return {invalidValidator}
+    return { invalidValidator }
   }
 }

@@ -1,4 +1,3 @@
-
 # Changelog
 
 ## Unreleased
@@ -10,7 +9,7 @@
 #### Changed
 - Reformat CHANGELOG to follow [Keep a Changelog](https://keepachangelog.com) recommandations
 - New documentation with latest docma v2.0.0
-- Dependency updates
+- Dependencies update
 
 ## 4.1.0 - 2018-03-03
 #### Added
@@ -22,8 +21,9 @@
 
 ## 4.0.0 - 2018-02-11
 #### Changed
-- **Breaking**: `startServer()` used to throw synrchonous errors while validating configuration.
-   Now all errors are thrown asynchronously
+- **Breaking**: `startServer()` used to throw synchronous errors while validating configuration.
+
+  Now all errors are thrown asynchronously
 - **Breaking**: Uses async/await instead of promise-based code. Requires node@8+
 - Dependencies update, including Hapi 17
 

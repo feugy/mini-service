@@ -10,7 +10,14 @@
   "jsdoc": {
     "allowUnknownTags": true,
     "hierarchy": true,
-    "recurse": true
+    "recurse": true,
+    "sort": "grouped",
+    "plugins": [
+      "plugins/markdown"
+    ],
+    "markdown": {
+      "gfm": true
+    }
   },
   "markdown": {
     "gfm": true,

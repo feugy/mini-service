@@ -1,4 +1,4 @@
-const {startServer} = require('../../') // require('mini-service')
+const { startServer } = require('../../') // require('mini-service')
 
 // service definition: name, version and the exposed APIs
 // export it so you can easilly use it with a local caller

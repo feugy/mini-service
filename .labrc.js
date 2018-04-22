@@ -16,7 +16,7 @@ if (process.env.CI) {
 module.exports = {
   coverage: true,
   leaks: true,
-  globals: '__core-js_shared__', // came from power-assert
+  globals: '__core-js_shared__,core', // came from power-assert
   lint: true,
   'lint-warnings-threshold': 10,
   threshold: 98,

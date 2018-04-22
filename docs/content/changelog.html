@@ -13,7 +13,7 @@
 <ul>
 <li>Reformat CHANGELOG to follow <a href="https://keepachangelog.com">Keep a Changelog</a> recommandations</li>
 <li>New documentation with latest docma v2.0.0</li>
-<li>Dependency updates</li>
+<li>Dependencies update</li>
 </ul>
 <h2 id="410---2018-03-03">4.1.0 - 2018-03-03</h2>
 <hr />
@@ -29,10 +29,13 @@
 <hr />
 <h4 id="changed">Changed</h4>
 <ul>
-<li><strong>Breaking</strong>: <code>startServer()</code> used to throw synrchonous errors while validating configuration.
- Now all errors are thrown asynchronously</li>
-<li><strong>Breaking</strong>: Uses async/await instead of promise-based code. Requires node@8+</li>
-<li>Dependencies update, including Hapi 17</li>
+<li><p><strong>Breaking</strong>: <code>startServer()</code> used to throw synchronous errors while validating configuration.</p>
+<p>Now all errors are thrown asynchronously</p>
+</li>
+<li><p><strong>Breaking</strong>: Uses async/await instead of promise-based code. Requires node@8+</p>
+</li>
+<li><p>Dependencies update, including Hapi 17</p>
+</li>
 </ul>
 <h4 id="fixed">Fixed</h4>
 <ul>

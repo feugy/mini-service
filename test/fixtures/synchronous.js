@@ -1,5 +1,5 @@
 const Joi = require('joi')
-const {unauthorized} = require('boom')
+const { unauthorized } = require('boom')
 
 /**
  * Initialize service and returns an object containing APIs functions
@@ -44,7 +44,7 @@ module.exports = (opts = {}) => {
      * @param {Any} other     - array of other parameters
      * @returns {Array} array of effective parameters
      */
-    async withExoticParameters ([a, b], {c: {d}} = {}, ...other) {
+    async withExoticParameters ([a, b], { c: { d } } = {}, ...other) {
       return [a, b, d, ...other]
     }
   }

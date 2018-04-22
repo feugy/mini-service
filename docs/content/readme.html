@@ -28,7 +28,7 @@
 <hr />
 <p>Here is a simple calculator service definition, that exposes functions to add and subtract numbers.</p>
 <p><code>calc-service.js</code></p>
-<pre><code class="lang-js">module.exports = {
+<pre><code class="js">module.exports = {
   name: 'calc-service',
   version: '1.0.0',
   init: () =&gt; {
@@ -36,47 +36,41 @@
     add: (a, b) =&gt; a + b,
     subtract: (a, b) =&gt; a - b
   }
-}
-</code></pre>
+}</code></pre>
 <p>If you want to use it locally in a different file:
 require the service definition, and create a [mini-client][mini-client-url] with it</p>
 <p><code>caller-local.js</code></p>
-<pre><code class="lang-js">const {getClient} = require('mini-service')
+<pre><code class="js">const {getClient} = require('mini-service')
 const calcService = require('./calc-service')
 
-const calc = getClient(calcService)
-</code></pre>
+const calc = getClient(calcService)</code></pre>
 <p>Then, init it (it's an async operation) and invoke any exposed API you need:</p>
 <p><code>caller-local.js</code></p>
-<pre><code class="lang-js">await calc.init()
+<pre><code class="js">await calc.init()
 const sum = await calc.add(10, 5)
-console.log(`Result is: ${sum}`)
-</code></pre>
+console.log(`Result is: ${sum}`)</code></pre>
 <p>Now let's imagine you need to deploy your calculator service in a standalone Http server, and invoke it from a remote server.
 To turn your local service into a real server, expose your service definition with mini-service's <code>startServer()</code>:</p>
 <p><code>calc-service.js</code></p>
-<pre><code class="lang-js">const {startServer} = require('mini-service')
+<pre><code class="js">const {startServer} = require('mini-service')
 
 module.exports = {...} // same service definition as above
 // starts Http server
-startServer(module.exports)
-</code></pre>
+startServer(module.exports)</code></pre>
 <p>A server is now listening on port 3000.</p>
 <p>And to use it from a remote caller, creates a mini-client giving the proper url:</p>
 <p><code>caller-remote.js</code></p>
-<pre><code class="lang-js">const getClient = require('mini-client') // or: const {getClient} = require('mini-service')
+<pre><code class="js">const getClient = require('mini-client') // or: const {getClient} = require('mini-service')
 
 const calc = getClient({
   remote: 'http://localhost:3000'
-})
-</code></pre>
+})</code></pre>
 <p>Please note that you <strong>don't need to require the service definition anymore</strong>.</p>
 <p>Usage is exactly the same as previously.</p>
 <p><code>caller-remote.js</code></p>
-<pre><code class="lang-js">await calc.init() // no-op, can be skipped
+<pre><code class="js">await calc.init() // no-op, can be skipped
 const sum = await calc.add(10, 5)
-console.log(`Result is: ${sum}`)
-</code></pre>
+console.log(`Result is: ${sum}`)</code></pre>
 <h2 id="acknowledgements">Acknowledgements</h2>
 <hr />
 <p>This project was kindly sponsored by <a href="http://nearform.com">nearForm</a>.</p>
@@ -103,7 +97,7 @@ console.log(`Result is: ${sum}`)
 <li>group <code>b</code> with api <code>ping</code></li>
 </ul>
 <p>the final Mini-client will be:</p>
-<pre><code class="lang-js">client = {
+<pre><code class="js">client = {
   ping(),
   a: {
     ping(),
@@ -112,12 +106,11 @@ console.log(`Result is: ${sum}`)
   b: {
     ping()
   }
-}
-</code></pre>
+}</code></pre>
 <h3 id="1x-to-2x-migration">1.x to 2.x migration</h3>
 <p>Local services, as remote services, <strong>must</strong> have <code>name</code> and <code>version</code> options defined</p>
 <p>When loading services, the <code>services</code> property was renamed to <code>groups</code>, and <code>serviceOpts</code> is now <code>groupOpts</code>:</p>
-<pre><code class="lang-js">const {startServer} = require('mini-service')
+<pre><code class="js">const {startServer} = require('mini-service')
 
 startServer({
   groups: [ // was services previously
@@ -130,6 +123,5 @@ startServer({
     serviceB: {},
     serviceC: {}
   }
-})
-</code></pre>
+})</code></pre>
 </body></html>

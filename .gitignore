@@ -3,3 +3,4 @@ coverage/
 *.log
 proxy-benchmark.js
 TODO.md
+yarn.lock

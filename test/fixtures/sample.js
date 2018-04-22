@@ -1,7 +1,7 @@
 const Joi = require('joi')
 const assert = require('power-assert')
-const {unauthorized} = require('boom')
-const {Readable} = require('stream')
+const { unauthorized } = require('boom')
+const { Readable } = require('stream')
 process.env.READABLE_STREAM = 'disable' // make sure we don't use readable-stream polyfill
 const BufferList = require('bl')
 const multistream = require('multistream')
@@ -19,7 +19,7 @@ module.exports = async (opts = {}) => {
      * @returns {Object} resolved with an object containing current time
      */
     async ping () {
-      return {time: new Date()}
+      return { time: new Date() }
     },
 
     /**
@@ -81,7 +81,7 @@ module.exports = async (opts = {}) => {
      * @param {Any} other     - array of other parameters
      * @returns {Array} array of effective parameters
      */
-    async withExoticParameters ([a, b], {c: {d}} = {}, ...other) {
+    async withExoticParameters ([a, b], { c: { d } } = {}, ...other) {
       return [a, b, d, ...other]
     },
 
@@ -113,7 +113,7 @@ module.exports = async (opts = {}) => {
   }
 
   // adds output documentation: no validation enforce (validateResponse is undefined)
-  apis.ping.responseSchema = Joi.object().keys({time: Joi.date().required()}).required()
+  apis.ping.responseSchema = Joi.object().keys({ time: Joi.date().required() }).required()
 
   // adds input validation
   apis.greeting.validate = [Joi.string().required()]
