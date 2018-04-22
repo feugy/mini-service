@@ -2,6 +2,7 @@
 
 - [What are deployment modes?](#what-are-deployment-modes-)
 - [Can exposed API be asynchronous?](#can-exposed-api-be-asynchronous-)
+- [Are there limitations on exposed API signatures?](#are-there-limitations-on-exposed-api-signatures-)
 - [Where to put asynchronous initialization?](#where-to-put-asynchronous-initialization-)
 - [Can initialization code be configured?](#can-initialization-code-be-configured-)
 - [How can service definition be more modular?](#how-can-service-definition-be-more-modular-)
@@ -81,6 +82,60 @@ startService({
   })
 })
 ```
+
+
+## Are there limitations on exposed API signatures?
+
+Despite all our efforts, yes. Hopefully main cases are covered.
+
+Because parameters will be stringified when sent to server:
+- they could be `null` or `undefined`
+- they could be booleans, numbers, strings, arrays, and plain object (contains only properties of the previous types)
+- they could be of other types (Date, Error, RegExp, custom classes...) but will boils down to the output of their `toString()` method
+- they could be `Buffer` or `Stream` (see bellow). All paremeter but the first will be ignored
+
+In particular, don't use functions as parameters.
+
+Same limitations applies to API returned object.
+
+You can use destructuring, rest parameters and even default values:
+```js
+async withExoticParameters ([a, b], {c: {d}} = {}, ...other) {
+  return [a, b, d, ...other]
+}
+```
+
+To use `Buffer` input parameter:
+- decorate API with `hasBufferInput`
+- use only one parameter (others will be set to `undefined`)
+    ```js
+    const api = {
+      async bufferHandling (buffer) {
+        assert(Buffer.isBuffer(buffer))
+        return Buffer.concat([buffer, new Uint8Array([3, 4])])
+      }
+    }
+    // decorate
+    apis.bufferHandling.hasBufferInput = true
+    ```
+
+To use `Stream` input parameter:
+- decorate API with `hasStreamInput`
+- use only one parameter (others will be set to `undefined`)
+    ```js
+    const api = {
+      async streamHandling (stream) {
+        assert(stream instanceof Readable)
+        const prefix = new BufferList()
+        prefix.append('here is a prefix -- ', 'utf8')
+        return multistream([prefix, stream])
+      }
+    }
+    // decorate
+    apis.streamHandling.hasStreamInput = true
+    ```
+
+You can return `Stream` and `Buffer` without any decoration, but don't nest them in objects (they will be stringified).
 
 
 ## Where to put asynchronous initialization?

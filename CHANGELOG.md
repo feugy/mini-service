@@ -2,6 +2,11 @@
 # Changelog
 
 ## Unreleased
+#### Added
+- Support for Buffer and Stream parameters and results
+- Validates exposed API metadata such as `validate`, `validateResponse` or `responseSchema`
+- Usage of Yarn 
+
 #### Changed
 - Reformat CHANGELOG to follow [Keep a Changelog](https://keepachangelog.com) recommandations
 - New documentation with latest docma v2.0.0

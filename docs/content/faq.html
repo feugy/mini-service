@@ -4,6 +4,7 @@
 <ul>
 <li><a href="#what-are-deployment-modes-">What are deployment modes?</a></li>
 <li><a href="#can-exposed-api-be-asynchronous-">Can exposed API be asynchronous?</a></li>
+<li><a href="#are-there-limitations-on-exposed-api-signatures-">Are there limitations on exposed API signatures?</a></li>
 <li><a href="#where-to-put-asynchronous-initialization-">Where to put asynchronous initialization?</a></li>
 <li><a href="#can-initialization-code-be-configured-">Can initialization code be configured?</a></li>
 <li><a href="#how-can-service-definition-be-more-modular-">How can service definition be more modular?</a></li>
@@ -77,6 +78,54 @@ startService({
   })
 })
 </code></pre>
+<h2 id="are-there-limitations-on-exposed-api-signatures-">Are there limitations on exposed API signatures?</h2>
+<hr />
+<p>Despite all our efforts, yes. Hopefully main cases are covered.</p>
+<p>Because parameters will be stringified when sent to server:</p>
+<ul>
+<li>they could be <code>null</code> or <code>undefined</code></li>
+<li>they could be booleans, numbers, strings, arrays, and plain object (contains only properties of the previous types)</li>
+<li>they could be of other types (Date, Error, RegExp, custom classes...) but will boils down to the output of their <code>toString()</code> method</li>
+<li>they could be <code>Buffer</code> or <code>Stream</code> (see bellow). All paremeter but the first will be ignored</li>
+</ul>
+<p>In particular, don't use functions as parameters.</p>
+<p>Same limitations applies to API returned object.</p>
+<p>You can use destructuring, rest parameters and even default values:</p>
+<pre><code class="lang-js">async withExoticParameters ([a, b], {c: {d}} = {}, ...other) {
+  return [a, b, d, ...other]
+}
+</code></pre>
+<p>To use <code>Buffer</code> input parameter:</p>
+<ul>
+<li>decorate API with <code>hasBufferInput</code></li>
+<li>use only one parameter (others will be set to <code>undefined</code>)<pre><code class="lang-js">  const api = {
+    async bufferHandling (buffer) {
+      assert(Buffer.isBuffer(buffer))
+      return Buffer.concat([buffer, new Uint8Array([3, 4])])
+    }
+  }
+  // decorate
+  apis.bufferHandling.hasBufferInput = true
+</code></pre>
+</li>
+</ul>
+<p>To use <code>Stream</code> input parameter:</p>
+<ul>
+<li>decorate API with <code>hasStreamInput</code></li>
+<li>use only one parameter (others will be set to <code>undefined</code>)<pre><code class="lang-js">  const api = {
+    async streamHandling (stream) {
+      assert(stream instanceof Readable)
+      const prefix = new BufferList()
+      prefix.append('here is a prefix -- ', 'utf8')
+      return multistream([prefix, stream])
+    }
+  }
+  // decorate
+  apis.streamHandling.hasStreamInput = true
+</code></pre>
+</li>
+</ul>
+<p>You can return <code>Stream</code> and <code>Buffer</code> without any decoration, but don't nest them in objects (they will be stringified).</p>
 <h2 id="where-to-put-asynchronous-initialization-">Where to put asynchronous initialization?</h2>
 <hr />
 <p>To serve this purpose, the <code>init()</code> function can be either synchronous or return a Promise.</p>

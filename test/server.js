@@ -2,8 +2,10 @@ const Lab = require('lab')
 const bunyan = require('bunyan')
 const assert = require('power-assert')
 const request = require('request-promise')
+const req = require('request')
 const crc32 = require('crc32')
 const {checksumHeader} = require('mini-service-utils')
+const BufferList = require('bl')
 const {startServer} = require('../')
 const utils = require('./test-utils')
 
@@ -75,8 +77,8 @@ describe('service\'s server', () => {
       await startServer(require('./fixtures/invalid-schema'))
     } catch (err) {
       assert(err instanceof Error)
-      assert(err.message.includes('validation schema for API invalidValidator (from group invalid-schema)'))
-      assert(err.message.includes('Invalid schema content'))
+      assert(err.message.includes('exposed API invalidValidator (from group invalid-schema)'))
+      assert(err.message.includes('"validate" must be an array'))
       return
     }
     throw new Error('should have failed')
@@ -101,27 +103,96 @@ describe('service\'s server', () => {
   describe('given a started server', () => {
     let server
     const exposedApis = [{
-      group: 'sample', id: 'ping', params: [], path: '/api/sample/ping'
+      group: 'sample',
+      id: 'ping',
+      params: [],
+      path: '/api/sample/ping',
+      hasBufferInput: false,
+      hasStreamInput: false
     }, {
-      group: 'sample', id: 'greeting', params: ['name'], path: '/api/sample/greeting'
+      group: 'sample',
+      id: 'greeting',
+      params: ['name'],
+      path: '/api/sample/greeting',
+      hasBufferInput: false,
+      hasStreamInput: false
     }, {
-      group: 'sample', id: 'failing', params: [], path: '/api/sample/failing'
+      group: 'sample',
+      id: 'failing',
+      params: [],
+      path: '/api/sample/failing',
+      hasBufferInput: false,
+      hasStreamInput: false
     }, {
-      group: 'sample', id: 'errored', params: [], path: '/api/sample/errored'
+      group: 'sample',
+      id: 'errored',
+      params: [],
+      path: '/api/sample/errored',
+      hasBufferInput: false,
+      hasStreamInput: false
     }, {
-      group: 'sample', id: 'getUndefined', params: [], path: '/api/sample/getUndefined'
+      group: 'sample',
+      id: 'getUndefined',
+      params: [],
+      path: '/api/sample/getUndefined',
+      hasBufferInput: false,
+      hasStreamInput: false
     }, {
-      group: 'sample', id: 'boomError', params: [], path: '/api/sample/boomError'
+      group: 'sample',
+      id: 'boomError',
+      params: [],
+      path: '/api/sample/boomError',
+      hasBufferInput: false,
+      hasStreamInput: false
     }, {
-      group: 'sample', id: 'withExoticParameters', params: ['param1', 'param2', 'other'], path: '/api/sample/withExoticParameters'
+      group: 'sample',
+      id: 'withExoticParameters',
+      params: ['param1', 'param2', 'other'],
+      path: '/api/sample/withExoticParameters',
+      hasBufferInput: false,
+      hasStreamInput: false
     }, {
-      group: 'synchronous', id: 'greeting', params: ['name'], path: '/api/synchronous/greeting'
+      group: 'sample',
+      id: 'bufferHandling',
+      params: ['buffer'],
+      path: '/api/sample/bufferHandling',
+      hasBufferInput: true,
+      hasStreamInput: false
     }, {
-      group: 'synchronous', id: 'getUndefined', params: [], path: '/api/synchronous/getUndefined'
+      group: 'sample',
+      id: 'streamHandling',
+      params: ['stream'],
+      path: '/api/sample/streamHandling',
+      hasBufferInput: false,
+      hasStreamInput: true
     }, {
-      group: 'synchronous', id: 'boomError', params: [], path: '/api/synchronous/boomError'
+      group: 'synchronous',
+      id: 'greeting',
+      params: ['name'],
+      path: '/api/synchronous/greeting',
+      hasBufferInput: false,
+      hasStreamInput: false
     }, {
-      group: 'synchronous', id: 'withExoticParameters', params: ['param1', 'param2', 'other'], path: '/api/synchronous/withExoticParameters'
+      group: 'synchronous',
+      id: 'getUndefined',
+      params: [],
+      path: '/api/synchronous/getUndefined',
+      hasBufferInput: false,
+      hasStreamInput: false
+    }, {
+      group: 'synchronous',
+      id: 'boomError',
+      params: [],
+      path: '/api/synchronous/boomError',
+      hasBufferInput: false,
+      hasStreamInput: false
+    }, {
+      group: 'synchronous',
+      id: 'withExoticParameters',
+      params: ['param1', 'param2', 'other'],
+      path: '/api/synchronous/withExoticParameters',
+      hasBufferInput: false,
+      hasStreamInput: false
     }]
     const checksum = crc32(JSON.stringify(exposedApis))
 
@@ -181,15 +252,17 @@ describe('service\'s server', () => {
         json: true,
         resolveWithFullResponse: true
       })
-      assert(checksum === response.headers['x-service-crc'])
+      assert(response.headers['x-service-crc'] === checksum)
     })
 
-    it('should invoke API without argument', async () =>
-      assert(await request({
+    it('should invoke API without argument', async () => {
+      const {time} = await request({
         method: 'GET',
-        url: `${server.info.uri}/api/sample/ping`
-      }))
-    )
+        url: `${server.info.uri}/api/sample/ping`,
+        json: true
+      })
+      assert(typeof time === 'string')
+    })
 
     it('should invoke async API with argument', async () => {
       const greetings = await request({
@@ -418,6 +491,45 @@ describe('service\'s server', () => {
         json: true
       })
       assert(greetings)
+    })
+
+    it('should send and receive buffers', async () => {
+      const response = await request({
+        method: 'POST',
+        url: `${server.info.uri}/api/sample/bufferHandling`,
+        body: Buffer.from(new Uint8Array([1, 2])),
+        resolveWithFullResponse: true
+      })
+      assert(response.headers['content-type'] === 'application/octet-stream')
+      assert(response.headers['x-service-crc'] === checksum)
+      const result = Buffer.from(response.body)
+      assert(Buffer.compare(result, Buffer.from(new Uint8Array([1, 2, 3, 4]))) === 0)
+    })
+
+    it('should send and receive streams', async () => {
+      const {response, result} = await new Promise((resolve, reject) => {
+        let response
+        const output = new BufferList()
+        const input = new BufferList()
+
+        input.pipe(
+          req.post(`${server.info.uri}/api/sample/streamHandling`)
+            .on('response', r => {
+              response = r
+            })
+            .on('end', () => {
+              resolve({response, result: output.toString()})
+            })
+        )
+          .pipe(output)
+          .on('error', reject)
+
+        input.append('here is the message body', 'utf8')
+      })
+      assert(result === 'here is a prefix -- here is the message body')
+      assert(response.headers['x-service-crc'] === checksum)
+      assert(response.headers['transfer-encoding'] === 'chunked')
+      assert(!response.headers['content-type'])
     })
   })
 

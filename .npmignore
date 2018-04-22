@@ -12,3 +12,4 @@ test/
 .jsdoc.json
 proxy-benchmark.js
 TODO.md
+yarn.lock
